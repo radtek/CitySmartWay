@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
+using System.Data.SqlClient;
 
 using IniParser;
 using IniParser.Model;
@@ -47,7 +48,6 @@ namespace AECping
             bw_resumer.WorkerSupportsCancellation = true;
             bw_resumer.DoWork += new DoWorkEventHandler(resume_thread);
 
-           
             for (int i = 0; i < numPanels; i++)
             {
 
@@ -319,6 +319,36 @@ namespace AECping
 
         }
 
-        
+        private void write_sql ()
+        {
+            string con_str = "Data Source=AECW8VM001\\AECW8VM001;Initial Catalog=AEC_DBUT;User ID=dmzuser2;Password=dmzuser2;";
+            string cmd_str;
+
+            using (SqlConnection con = new SqlConnection(con_str))
+            {
+
+                cmd_str = "SELECT PAR_EXP_A, PAR_EXP_B " +
+
+                "FROM L_ANAG_CURVE " +
+
+                "WHERE " +
+
+                "(ID_TIPO_CURVA = 1)";
+
+
+                SqlCommand cmd = new SqlCommand(cmd_str, con);
+                con.Open();
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                reader.Read();
+
+                //par_array[0] = reader.GetDouble(0);
+                //par_array[1] = reader.GetDouble(1);
+
+                reader.Close();
+                con.Close();
+
+            }
+        } 
     }
 }
