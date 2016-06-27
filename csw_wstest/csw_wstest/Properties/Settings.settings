@@ -1,0 +1,15 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="csw_wstest.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="ws_URL" Type="System.String" Scope="User">
+      <Value Profile="(Default)">http://citysmartway.aecilluminazione.it/hyper/ws</Value>
+    </Setting>
+    <Setting Name="ws_USER" Type="System.String" Scope="User">
+      <Value Profile="(Default)">aec</Value>
+    </Setting>
+    <Setting Name="ws_PWD" Type="System.String" Scope="User">
+      <Value Profile="(Default)">123456</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
