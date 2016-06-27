@@ -34,11 +34,6 @@ namespace AECping
         List<int> pingexceptionfailures_list = new List<int>();
         List<int> failedping_list = new List<int>();
 
-        //BackgroundWorker bw = new BackgroundWorker();
-        //BackgroundWorker bw2 = new BackgroundWorker();
-        //bool pingexceptionraised = false;
-        //int pingexpectionfailures = 0;
-
         public MainForm()
         {
             InitializeComponent();
@@ -52,18 +47,7 @@ namespace AECping
             bw_resumer.WorkerSupportsCancellation = true;
             bw_resumer.DoWork += new DoWorkEventHandler(resume_thread);
 
-            //bw.WorkerSupportsCancellation = true;
-            //bw.WorkerReportsProgress = true;
-            //bw.DoWork += new DoWorkEventHandler(pingproc);
-            //bw.ProgressChanged +=new ProgressChangedEventHandler(bw_ProgressChanged);
-            //bw.RunWorkerCompleted +=new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
-
-            //bw2.WorkerSupportsCancellation = true;
-            //bw2.WorkerReportsProgress = true;
-            //bw2.DoWork += new DoWorkEventHandler(pingproc);
-            //bw2.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
-            //bw2.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
-
+           
             for (int i = 0; i < numPanels; i++)
             {
 

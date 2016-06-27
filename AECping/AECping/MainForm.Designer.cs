@@ -29,13 +29,16 @@
         private void InitializeComponent()
         {
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.btn_pingstop = new System.Windows.Forms.Button();
-            this.btn_pingstart = new System.Windows.Forms.Button();
             this.Host = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.IP = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ResponseTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Status = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.btn_pingstop = new System.Windows.Forms.Button();
+            this.btn_pingstart = new System.Windows.Forms.Button();
+            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
+            this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // dataGridView1
@@ -49,32 +52,8 @@
             this.dataGridView1.Location = new System.Drawing.Point(12, 12);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.RowHeadersVisible = false;
-            this.dataGridView1.Size = new System.Drawing.Size(437, 288);
+            this.dataGridView1.Size = new System.Drawing.Size(437, 271);
             this.dataGridView1.TabIndex = 0;
-            // 
-            // btn_pingstop
-            // 
-            this.btn_pingstop.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btn_pingstop.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.btn_pingstop.Location = new System.Drawing.Point(455, 279);
-            this.btn_pingstop.Name = "btn_pingstop";
-            this.btn_pingstop.Size = new System.Drawing.Size(90, 23);
-            this.btn_pingstop.TabIndex = 1;
-            this.btn_pingstop.Text = "Stop Ping";
-            this.btn_pingstop.UseVisualStyleBackColor = true;
-            this.btn_pingstop.Click += new System.EventHandler(this.btn_pingstop_Click);
-            // 
-            // btn_pingstart
-            // 
-            this.btn_pingstart.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btn_pingstart.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.btn_pingstart.Location = new System.Drawing.Point(455, 250);
-            this.btn_pingstart.Name = "btn_pingstart";
-            this.btn_pingstart.Size = new System.Drawing.Size(90, 23);
-            this.btn_pingstart.TabIndex = 1;
-            this.btn_pingstart.Text = "Start Ping";
-            this.btn_pingstart.UseVisualStyleBackColor = true;
-            this.btn_pingstart.Click += new System.EventHandler(this.btn_pingstart_Click);
             // 
             // Host
             // 
@@ -100,11 +79,52 @@
             this.Status.HeaderText = "Status";
             this.Status.Name = "Status";
             // 
+            // btn_pingstop
+            // 
+            this.btn_pingstop.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btn_pingstop.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.btn_pingstop.Location = new System.Drawing.Point(455, 260);
+            this.btn_pingstop.Name = "btn_pingstop";
+            this.btn_pingstop.Size = new System.Drawing.Size(90, 23);
+            this.btn_pingstop.TabIndex = 1;
+            this.btn_pingstop.Text = "Stop Ping";
+            this.btn_pingstop.UseVisualStyleBackColor = true;
+            this.btn_pingstop.Click += new System.EventHandler(this.btn_pingstop_Click);
+            // 
+            // btn_pingstart
+            // 
+            this.btn_pingstart.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btn_pingstart.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.btn_pingstart.Location = new System.Drawing.Point(455, 231);
+            this.btn_pingstart.Name = "btn_pingstart";
+            this.btn_pingstart.Size = new System.Drawing.Size(90, 23);
+            this.btn_pingstart.TabIndex = 1;
+            this.btn_pingstart.Text = "Start Ping";
+            this.btn_pingstart.UseVisualStyleBackColor = true;
+            this.btn_pingstart.Click += new System.EventHandler(this.btn_pingstart_Click);
+            // 
+            // statusStrip1
+            // 
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripStatusLabel1});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 290);
+            this.statusStrip1.Name = "statusStrip1";
+            this.statusStrip1.Size = new System.Drawing.Size(557, 22);
+            this.statusStrip1.TabIndex = 2;
+            this.statusStrip1.Text = "statusStrip1";
+            // 
+            // toolStripStatusLabel1
+            // 
+            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(118, 17);
+            this.toolStripStatusLabel1.Text = "toolStripStatusLabel1";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(557, 312);
+            this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.btn_pingstart);
             this.Controls.Add(this.btn_pingstop);
             this.Controls.Add(this.dataGridView1);
@@ -113,7 +133,10 @@
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.Load += new System.EventHandler(this.MainForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
+            this.statusStrip1.ResumeLayout(false);
+            this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -126,6 +149,8 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn IP;
         private System.Windows.Forms.DataGridViewTextBoxColumn ResponseTime;
         private System.Windows.Forms.DataGridViewTextBoxColumn Status;
+        private System.Windows.Forms.StatusStrip statusStrip1;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
     }
 }
 
