@@ -59,49 +59,55 @@ namespace AECping
         {
             InitializeComponent();
 
-            parser = new FileIniDataParser();
-            data = parser.ReadFile("AECPingConfig.ini");
-            numPanels = Convert.ToInt16(data["Config"]["Panels"]);
-            ping_period = Convert.ToInt16(data["Config"]["Ping_period"]);
-            pingresume_period = Convert.ToInt16(data["Config"]["PingResume_period"]);
-            ping_timeout = Convert.ToInt16(data["Config"]["Ping_timeout"]);
-            failed_ping_alarm = Convert.ToInt16(data["Config"]["Failed_Ping_Alarm"]);
-
-            DataSource= data["SQLConfig"]["DataSource"];
-            InitialCatalog = data["SQLConfig"]["InitialCatalog"]; ;
-            UserID = data["SQLConfig"]["UserID"]; ;
-            Password = data["SQLConfig"]["Password"]; ;
-            sqlwrite_period = Convert.ToInt16(data["SQLConfig"]["SqlWrite_period"]);
-
-            con_str = "Data Source=" + DataSource + ";Initial Catalog="+ InitialCatalog+";User ID=" + UserID+";Password=" + Password+";";
-
-            bw_resumer.WorkerSupportsCancellation = true;
-            bw_resumer.DoWork += new DoWorkEventHandler(resume_thread);
-
-            bw_sqlwriter.WorkerSupportsCancellation = true;
-            bw_sqlwriter.DoWork += new DoWorkEventHandler(writesql_thread);
-
-            bw_btnupdater.WorkerSupportsCancellation = true;
-            bw_btnupdater.DoWork += new DoWorkEventHandler(updatebtn_thread);
-
-
-            for (int i = 0; i < numPanels; i++)
+            try
             {
+                parser = new FileIniDataParser();
+                data = parser.ReadFile(".\\AECPingConfig.ini");
+                numPanels = Convert.ToInt16(data["Config"]["Panels"]);
+                ping_period = Convert.ToInt16(data["Config"]["Ping_period"]);
+                pingresume_period = Convert.ToInt16(data["Config"]["PingResume_period"]);
+                ping_timeout = Convert.ToInt16(data["Config"]["Ping_timeout"]);
+                failed_ping_alarm = Convert.ToInt16(data["Config"]["Failed_Ping_Alarm"]);
 
-                BackgroundWorker bw = new BackgroundWorker();
-                bw.WorkerSupportsCancellation = true;
-                bw.WorkerReportsProgress = true;
-                bw.DoWork += new DoWorkEventHandler(pingproc_thread);
-                bw.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
-                bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
+                DataSource = data["SQLConfig"]["DataSource"];
+                InitialCatalog = data["SQLConfig"]["InitialCatalog"]; ;
+                UserID = data["SQLConfig"]["UserID"]; ;
+                Password = data["SQLConfig"]["Password"]; ;
+                sqlwrite_period = Convert.ToInt16(data["SQLConfig"]["SqlWrite_period"]);
 
-                bw_list.Add(bw);
+                con_str = "Data Source=" + DataSource + ";Initial Catalog=" + InitialCatalog + ";User ID=" + UserID + ";Password=" + Password + ";";
 
-                pingexceptionraised_list.Add(false);
-                pingexceptionfailures_list.Add(0);
-                failedping_list.Add(0);
+                bw_resumer.WorkerSupportsCancellation = true;
+                bw_resumer.DoWork += new DoWorkEventHandler(resume_thread);
+
+                bw_sqlwriter.WorkerSupportsCancellation = true;
+                bw_sqlwriter.DoWork += new DoWorkEventHandler(writesql_thread);
+
+                bw_btnupdater.WorkerSupportsCancellation = true;
+                bw_btnupdater.DoWork += new DoWorkEventHandler(updatebtn_thread);
+
+
+                for (int i = 0; i < numPanels; i++)
+                {
+
+                    BackgroundWorker bw = new BackgroundWorker();
+                    bw.WorkerSupportsCancellation = true;
+                    bw.WorkerReportsProgress = true;
+                    bw.DoWork += new DoWorkEventHandler(pingproc_thread);
+                    bw.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
+                    bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
+
+                    bw_list.Add(bw);
+
+                    pingexceptionraised_list.Add(false);
+                    pingexceptionfailures_list.Add(0);
+                    failedping_list.Add(0);
+                }
             }
-
+            catch (IniParser.Exceptions.ParsingException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
            
         }
 
