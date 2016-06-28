@@ -42,6 +42,7 @@ namespace AECping
         BackgroundWorker bw_btnupdater = new BackgroundWorker();
 
         List<BackgroundWorker> bw_list = new List<BackgroundWorker>();
+
         List<bool> pingexceptionraised_list = new List<bool>();
         List<int> pingexceptionfailures_list = new List<int>();
         List<int> failedping_list = new List<int>();
@@ -50,7 +51,10 @@ namespace AECping
 
         bool SQL_ERROR =false;
         bool PING_ERROR = false;
-        
+        bool ALARM = false;
+
+        delegate void UpdatelabelCallback(bool allarme);
+
         public MainForm()
         {
             InitializeComponent();
@@ -249,8 +253,11 @@ namespace AECping
                         else if (failedping_list[num_panel] < failed_ping_alarm)
                             dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.Yellow;
                         else
+                        {
                             dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.Red;
-                        
+                            ALARM = true;
+                        }
+
                         Thread.Sleep(ping_period);
 
                     };
@@ -546,6 +553,10 @@ namespace AECping
                                 toolStripSplitButton2.AccessibleName = "GREEN";
                             }
                         }
+
+                        this.updatelabel_thread(ALARM);
+                                    
+
                     }
 
                     Thread.Sleep(1000);
@@ -556,5 +567,23 @@ namespace AECping
                 throw;
             }
         }
+
+        private void updatelabel_thread(bool allarme)
+        {
+            if (this.label1.InvokeRequired)
+            {
+                UpdatelabelCallback d = new UpdatelabelCallback(updatelabel_thread);
+                this.Invoke(d, new object[] {allarme });
+            }
+            else
+            {
+                if (allarme)
+                    label1.Visible = true;
+                else
+                    label1.Visible = false;
+            }
+
+        }
+
     }
 }
