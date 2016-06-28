@@ -21,20 +21,31 @@ namespace AECping
     public partial class MainForm : Form
     {
         int ping_period;
+        int pingresume_period;
+        int sqlwrite_period;
         int failed_ping_alarm;
         int numPanels;
+
+        string DataSource;
+        string InitialCatalog;
+        string UserID;
+        string Password;
+        string con_str;
 
         FileIniDataParser parser;
         string PanelININame;
         IniData data ;
 
         BackgroundWorker bw_resumer = new BackgroundWorker();
+        BackgroundWorker bw_sqlwriter = new BackgroundWorker();
 
         List<BackgroundWorker> bw_list = new List<BackgroundWorker>();
         List<bool> pingexceptionraised_list = new List<bool>();
         List<int> pingexceptionfailures_list = new List<int>();
         List<int> failedping_list = new List<int>();
 
+        bool sqlwrite_exceptionraised = false;
+        
         public MainForm()
         {
             InitializeComponent();
@@ -43,10 +54,22 @@ namespace AECping
             data = parser.ReadFile("AECPingConfig.ini");
             numPanels = Convert.ToInt16(data["Config"]["Panels"]);
             ping_period = Convert.ToInt16(data["Config"]["Ping_period"]);
+            pingresume_period = Convert.ToInt16(data["Config"]["PingResume_period"]);
             failed_ping_alarm = Convert.ToInt16(data["Config"]["Failed_Ping_Alarm"]);
+
+            DataSource= data["SQLConfig"]["DataSource"];
+            InitialCatalog = data["SQLConfig"]["InitialCatalog"]; ;
+            UserID = data["SQLConfig"]["UserID"]; ;
+            Password = data["SQLConfig"]["Password"]; ;
+            sqlwrite_period = Convert.ToInt16(data["Config"]["SqlWrite_period"]);
+
+            con_str = "Data Source=" + DataSource + ";Initial Catalog="+ InitialCatalog+";User ID=" + UserID+";Password=" + Password+";";
 
             bw_resumer.WorkerSupportsCancellation = true;
             bw_resumer.DoWork += new DoWorkEventHandler(resume_thread);
+
+            bw_sqlwriter.WorkerSupportsCancellation = true;
+            bw_sqlwriter.DoWork += new DoWorkEventHandler(write_sql);
 
             for (int i = 0; i < numPanels; i++)
             {
@@ -66,7 +89,7 @@ namespace AECping
             }
 
 
-            
+
         }
 
 
@@ -111,7 +134,7 @@ namespace AECping
                         {
                             if (bw_list[i].IsBusy != true)
                             {
-                                failedping_list[i]=0;
+                                //pingexceptionraised_list[i] = false;
                                 bw_list[i].RunWorkerAsync(i);
                             }
                         }
@@ -119,7 +142,16 @@ namespace AECping
                         i++;
                     }
 
-                    Thread.Sleep(ping_period);
+                    if (sqlwrite_exceptionraised)
+                    {
+                        if (bw_sqlwriter.IsBusy != true)
+                        {
+                            bw_sqlwriter.RunWorkerAsync();
+                        }
+
+                    }
+
+                    Thread.Sleep(pingresume_period);
                 };
 
             }
@@ -149,6 +181,9 @@ namespace AECping
                 Ping_Options.DontFragment = true;
 
                 dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.Silver;
+
+                //pingexceptionfailures_list[num_panel] = 0;
+                //pingexceptionraised_list[num_panel] = false;
 
                 Debug.WriteLine("Ping thread started");
 
@@ -241,12 +276,18 @@ namespace AECping
                 i++;
             }
 
-            
-            
+
             if (bw_resumer.IsBusy != true)
             {
                 bw_resumer.RunWorkerAsync();
             }
+
+
+            if (bw_sqlwriter.IsBusy != true)
+            {
+                bw_sqlwriter.RunWorkerAsync();
+            }
+
 
             btn_pingstart.Enabled = false;
             btn_pingstop.Enabled = true;
@@ -259,7 +300,6 @@ namespace AECping
             Debug.WriteLine("Disabling Ping thread");
 
 
-            int i = 0;
             foreach (BackgroundWorker s in bw_list)
             {
 
@@ -268,13 +308,17 @@ namespace AECping
                     s.CancelAsync();
                 }
 
-                i++;
             }
 
 
             if (bw_resumer.WorkerSupportsCancellation == true)
             {
                 bw_resumer.CancelAsync();
+            }
+
+            if (bw_sqlwriter.WorkerSupportsCancellation == true)
+            {
+                bw_sqlwriter.CancelAsync();
             }
 
             btn_pingstart.Enabled = true;
@@ -319,35 +363,93 @@ namespace AECping
 
         }
 
-        private void write_sql ()
+        private void write_sql (object sender, DoWorkEventArgs e)
         {
-            string con_str = "Data Source=AECW8VM001\\AECW8VM001;Initial Catalog=AEC_DBUT;User ID=dmzuser2;Password=dmzuser2;";
             string cmd_str;
+            BackgroundWorker worker = sender as BackgroundWorker;
+            sqlwrite_exceptionraised=false;
+            toolStripStatusLabel1.Text = "SQL OK";
 
-            using (SqlConnection con = new SqlConnection(con_str))
+            try
             {
 
-                cmd_str = "SELECT PAR_EXP_A, PAR_EXP_B " +
+                using (SqlConnection con = new SqlConnection(con_str))
+                {
 
-                "FROM L_ANAG_CURVE " +
+                    con.Open();
 
-                "WHERE " +
+                    //Delete the rows in the sql table
+                    cmd_str = "DELETE FROM PING_PANEL_LIST";
+                    SqlCommand cmd = new SqlCommand(cmd_str, con);
+                    cmd.ExecuteNonQuery();
 
-                "(ID_TIPO_CURVA = 1)";
+                    //Initialize
+                    for (int i = 0; i < numPanels; i++)
+                    {
+                        cmd.CommandText =
+                            "INSERT INTO PING_PANEL_LIST " +
+                            "(ID, NOME, IP_ADDR)" +
+                            " Values ('" +
+                            i + "','" +
+                            dataGridView1.Rows[i].Cells[0].Value.ToString() + "','" +
+                            dataGridView1.Rows[i].Cells[1].Value.ToString() + "')";
 
+                        cmd.ExecuteNonQuery();
+                    }
 
-                SqlCommand cmd = new SqlCommand(cmd_str, con);
-                con.Open();
-                SqlDataReader reader = cmd.ExecuteReader();
+                    con.Close();
 
-                reader.Read();
+                }
 
-                //par_array[0] = reader.GetDouble(0);
-                //par_array[1] = reader.GetDouble(1);
+                while (true)
+                {
 
-                reader.Close();
-                con.Close();
+                    if ((worker.CancellationPending == true))
+                    {
+                        e.Cancel = true;
+                        break;
+                    }
+                    else
+                    {
 
+                        using (SqlConnection con = new SqlConnection(con_str))
+                        {
+
+                            con.Open();
+
+                            SqlCommand cmd = new SqlCommand(cmd_str, con);
+
+                            //populate the table
+                            for (int i = 0; i < numPanels; i++)
+                            {
+                                int status_bool = 0;
+                                if (dataGridView1.Rows[i].Cells[3].Value.Equals("Success(0)"))
+                                    status_bool = 1;
+
+                                cmd.CommandText =
+                                    "UPDATE PING_PANEL_LIST " +
+                                    "SET " +
+                                    "RESPONSE='" +
+                                    dataGridView1.Rows[i].Cells[2].Value.ToString() + "'," +
+                                    "STATUS='" +
+                                    dataGridView1.Rows[i].Cells[3].Value.ToString() + "'," +
+                                    "STATUS_BOOL='" +
+                                    status_bool + "'" +
+                                    " WHERE ID='" + i + "';";
+
+                                cmd.ExecuteNonQuery();
+                            }
+                            con.Close();
+                        }
+                    }
+
+                    Thread.Sleep(sqlwrite_period);
+                }
+            }
+            catch
+            {
+                sqlwrite_exceptionraised = true;
+                toolStripStatusLabel1.Text = "SQL ERROR";
             }
         } 
     }
