@@ -22,6 +22,7 @@ namespace AECping
     {
         int ping_period;
         int pingresume_period;
+        int ping_timeout;
         int sqlwrite_period;
         int failed_ping_alarm;
         int numPanels;
@@ -38,6 +39,7 @@ namespace AECping
 
         BackgroundWorker bw_resumer = new BackgroundWorker();
         BackgroundWorker bw_sqlwriter = new BackgroundWorker();
+        BackgroundWorker bw_btnupdater = new BackgroundWorker();
 
         List<BackgroundWorker> bw_list = new List<BackgroundWorker>();
         List<bool> pingexceptionraised_list = new List<bool>();
@@ -45,6 +47,9 @@ namespace AECping
         List<int> failedping_list = new List<int>();
 
         bool sqlwrite_exceptionraised = false;
+
+        bool SQL_ERROR =false;
+        bool PING_ERROR = false;
         
         public MainForm()
         {
@@ -55,13 +60,14 @@ namespace AECping
             numPanels = Convert.ToInt16(data["Config"]["Panels"]);
             ping_period = Convert.ToInt16(data["Config"]["Ping_period"]);
             pingresume_period = Convert.ToInt16(data["Config"]["PingResume_period"]);
+            ping_timeout = Convert.ToInt16(data["Config"]["Ping_timeout"]);
             failed_ping_alarm = Convert.ToInt16(data["Config"]["Failed_Ping_Alarm"]);
 
             DataSource= data["SQLConfig"]["DataSource"];
             InitialCatalog = data["SQLConfig"]["InitialCatalog"]; ;
             UserID = data["SQLConfig"]["UserID"]; ;
             Password = data["SQLConfig"]["Password"]; ;
-            sqlwrite_period = Convert.ToInt16(data["Config"]["SqlWrite_period"]);
+            sqlwrite_period = Convert.ToInt16(data["SQLConfig"]["SqlWrite_period"]);
 
             con_str = "Data Source=" + DataSource + ";Initial Catalog="+ InitialCatalog+";User ID=" + UserID+";Password=" + Password+";";
 
@@ -69,7 +75,11 @@ namespace AECping
             bw_resumer.DoWork += new DoWorkEventHandler(resume_thread);
 
             bw_sqlwriter.WorkerSupportsCancellation = true;
-            bw_sqlwriter.DoWork += new DoWorkEventHandler(write_sql);
+            bw_sqlwriter.DoWork += new DoWorkEventHandler(writesql_thread);
+
+            bw_btnupdater.WorkerSupportsCancellation = true;
+            bw_btnupdater.DoWork += new DoWorkEventHandler(updatebtn_thread);
+
 
             for (int i = 0; i < numPanels; i++)
             {
@@ -77,7 +87,7 @@ namespace AECping
                 BackgroundWorker bw = new BackgroundWorker();
                 bw.WorkerSupportsCancellation = true;
                 bw.WorkerReportsProgress = true;
-                bw.DoWork += new DoWorkEventHandler(pingproc);
+                bw.DoWork += new DoWorkEventHandler(pingproc_thread);
                 bw.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
                 bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
 
@@ -88,8 +98,7 @@ namespace AECping
                 failedping_list.Add(0);
             }
 
-
-
+           
         }
 
 
@@ -104,7 +113,15 @@ namespace AECping
                 dataGridView1.Rows.Add(line[0], line[1]);
             }
 
+            btn_pingstart.Enabled = true;
             btn_pingstop.Enabled = false;
+
+            toolStripSplitButton1.Image = global::AECping.Properties.Resources.BLUEBTN;
+            toolStripSplitButton2.Image = global::AECping.Properties.Resources.BLUEBTN;
+            toolStripSplitButton1.AccessibleName="";
+            toolStripSplitButton2.AccessibleName = "";
+
+
 
         }
 
@@ -126,21 +143,24 @@ namespace AECping
                 }
                 else
                 {
+                    int num_ping_err = 0;
                     int i = 0;
-                    foreach (bool s in pingexceptionraised_list)
+                    foreach (bool s in new System.Collections.ArrayList(pingexceptionraised_list))
                     {
 
                         if (s)
                         {
                             if (bw_list[i].IsBusy != true)
                             {
-                                //pingexceptionraised_list[i] = false;
-                                bw_list[i].RunWorkerAsync(i);
+                                 bw_list[i].RunWorkerAsync(i);
                             }
+                            num_ping_err++;
                         }
 
                         i++;
                     }
+                    if (num_ping_err == 0) PING_ERROR = false;
+
 
                     if (sqlwrite_exceptionraised)
                     {
@@ -148,8 +168,9 @@ namespace AECping
                         {
                             bw_sqlwriter.RunWorkerAsync();
                         }
-
+                       
                     }
+                    else SQL_ERROR = false;
 
                     Thread.Sleep(pingresume_period);
                 };
@@ -157,14 +178,17 @@ namespace AECping
             }
         }
 
-        private void pingproc(object sender, DoWorkEventArgs e)
+        private void pingproc_thread(object sender, DoWorkEventArgs e)
         {
             int num_panel = (int)e.Argument;
+            int num_try = 0;
 
             try
             {
                 BackgroundWorker worker = sender as BackgroundWorker;
-                
+                pingexceptionfailures_list[num_panel] = 0;
+                pingexceptionraised_list[num_panel] = false;
+
                 Debug.WriteLine("bw"+ num_panel+"_ID:"+Thread.CurrentThread.ManagedThreadId);
                 
                 Ping Ping_Sender = new Ping();
@@ -172,7 +196,7 @@ namespace AECping
                 PingOptions Ping_Options = new PingOptions();
 
                 string IPaddress = dataGridView1.Rows[num_panel].Cells[1].Value.ToString();
-                int ping_timeout = 120;
+                int timeout = ping_timeout;
                 string data = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
                 byte[] ping_buffer = Encoding.ASCII.GetBytes(data);
 
@@ -182,8 +206,7 @@ namespace AECping
 
                 dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.Silver;
 
-                //pingexceptionfailures_list[num_panel] = 0;
-                //pingexceptionraised_list[num_panel] = false;
+                
 
                 Debug.WriteLine("Ping thread started");
 
@@ -198,22 +221,26 @@ namespace AECping
                     else
                     {
 
-                        
-                        Ping_Reply = Ping_Sender.Send(IPaddress, ping_timeout, ping_buffer, Ping_Options);
+                        Ping_Reply = Ping_Sender.Send(IPaddress, timeout, ping_buffer, Ping_Options);
 
                         if (Ping_Reply.Status != IPStatus.Success)
                         {
+                            num_try = 0;
                             failedping_list[num_panel]++;
                             pingexceptionfailures_list[num_panel] = 0;
+                            dataGridView1.Rows[num_panel].Cells[2].Value = "";
+                            dataGridView1.Rows[num_panel].Cells[3].Value = Ping_Reply.Status + "(" + failedping_list[num_panel] + ")";
+
                         }
                         else
                         {
+                            num_try++;
                             failedping_list[num_panel] = 0;
                             pingexceptionfailures_list[num_panel] = 0;
-                        }
+                            dataGridView1.Rows[num_panel].Cells[2].Value = Ping_Reply.RoundtripTime + "ms";
+                            dataGridView1.Rows[num_panel].Cells[3].Value = Ping_Reply.Status + "(" + num_try + ")";
 
-                        dataGridView1.Rows[num_panel].Cells[2].Value = Ping_Reply.RoundtripTime + "ms";
-                        dataGridView1.Rows[num_panel].Cells[3].Value = Ping_Reply.Status + "(" + failedping_list[num_panel] + ")";
+                        }
 
                         //Debug.WriteLine("Host:{3}, Status:{0}, RTT:{1}, TTL:{2}", Ping_Reply.Status, Ping_Reply.RoundtripTime, Ping_Reply.Options.Ttl, (int)e.Argument);
 
@@ -223,8 +250,7 @@ namespace AECping
                             dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.Yellow;
                         else
                             dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.Red;
-
-
+                        
                         Thread.Sleep(ping_period);
 
                     };
@@ -238,6 +264,7 @@ namespace AECping
             catch (ThreadAbortException)
             {
                 Debug.Write("bw" + num_panel+ ":Thread Abort Exception");
+                
             }
 
             catch (NullReferenceException)
@@ -249,20 +276,21 @@ namespace AECping
             {
                 pingexceptionraised_list[num_panel] = true;
                 pingexceptionfailures_list[num_panel]++;
+                num_try = 0;
 
                 Debug.Write("bw" + num_panel + ":Ping Exception");
                 dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.Orange;
                 dataGridView1.Rows[num_panel].Cells[3].Value = "PING ERR("+pingexceptionfailures_list[num_panel]+")";
-
+                PING_ERROR = true;
             }
 
         }
 
-
         private void btn_pingstart_Click(object sender, EventArgs e)
         {
 
-            Debug.WriteLine("Enabling Ping thread");
+            Debug.WriteLine("Enabling threads");
+         
 
             int i = 0;
             foreach (BackgroundWorker s in bw_list)
@@ -288,6 +316,13 @@ namespace AECping
                 bw_sqlwriter.RunWorkerAsync();
             }
 
+            SQL_ERROR = false; 
+            PING_ERROR = false;
+
+            if (bw_btnupdater.IsBusy != true)
+            {
+                bw_btnupdater.RunWorkerAsync();
+            }
 
             btn_pingstart.Enabled = false;
             btn_pingstop.Enabled = true;
@@ -297,7 +332,7 @@ namespace AECping
         private void btn_pingstop_Click(object sender, EventArgs e)
         {
 
-            Debug.WriteLine("Disabling Ping thread");
+            Debug.WriteLine("Disabling threads");
 
 
             foreach (BackgroundWorker s in bw_list)
@@ -321,20 +356,30 @@ namespace AECping
                 bw_sqlwriter.CancelAsync();
             }
 
+            if (bw_btnupdater.WorkerSupportsCancellation == true)
+            {
+                bw_btnupdater.CancelAsync();
+            }
+
             btn_pingstart.Enabled = true;
             btn_pingstop.Enabled = false;
 
+            toolStripSplitButton1.Image = global::AECping.Properties.Resources.BLUEBTN;
+            toolStripSplitButton2.Image = global::AECping.Properties.Resources.BLUEBTN;
+            toolStripSplitButton1.AccessibleName = "";
+            toolStripSplitButton2.AccessibleName = "";
         }
 
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            Console.WriteLine("Thread Stopped ");
+            Console.WriteLine("Form Closed");
             
         }
 
         private void bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
+            Console.WriteLine("Progress Changed");
             //this.tbProgress.Text = (e.ProgressPercentage.ToString() + "%");
         }
 
@@ -357,19 +402,17 @@ namespace AECping
             {
                 //this.tbProgress.Text = "Done!";
                 Debug.WriteLine("Thread Done!");
-
                
             }
 
         }
 
-        private void write_sql (object sender, DoWorkEventArgs e)
+        private void writesql_thread (object sender, DoWorkEventArgs e)
         {
             string cmd_str;
             BackgroundWorker worker = sender as BackgroundWorker;
             sqlwrite_exceptionraised=false;
-            toolStripStatusLabel1.Text = "SQL OK";
-
+            
             try
             {
 
@@ -449,8 +492,69 @@ namespace AECping
             catch
             {
                 sqlwrite_exceptionraised = true;
-                toolStripStatusLabel1.Text = "SQL ERROR";
+                SQL_ERROR = true;
             }
-        } 
+        }
+
+        private void updatebtn_thread(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+
+            try
+            {
+
+                while (true)
+                {
+
+                    if ((worker.CancellationPending == true))
+                    {
+                        e.Cancel = true;
+                        break;
+                    }
+                    else
+                    {
+                        if (SQL_ERROR)
+                        {
+                            if (!(toolStripSplitButton1.AccessibleName.Equals("RED")))
+                            {
+                                toolStripSplitButton1.Image = global::AECping.Properties.Resources.REDBTN;
+                                toolStripSplitButton1.AccessibleName = "RED";
+                            }
+                        }
+                        else
+                        {
+                            if (!(toolStripSplitButton1.AccessibleName.Equals("GREEN")))
+                            {
+                                toolStripSplitButton1.Image = global::AECping.Properties.Resources.GREENBTN;
+                                toolStripSplitButton1.AccessibleName = "GREEN";
+                            }
+                        }
+
+                        if (PING_ERROR)
+                        {
+                            if (!(toolStripSplitButton2.AccessibleName.Equals("RED")))
+                            {
+                                toolStripSplitButton2.Image = global::AECping.Properties.Resources.REDBTN;
+                                toolStripSplitButton2.AccessibleName = "RED";
+                            }
+                        }
+                        else
+                        {
+                            if (!(toolStripSplitButton2.AccessibleName.Equals("GREEN")))
+                            {
+                                toolStripSplitButton2.Image = global::AECping.Properties.Resources.GREENBTN;
+                                toolStripSplitButton2.AccessibleName = "GREEN";
+                            }
+                        }
+                    }
+
+                    Thread.Sleep(1000);
+                }
+            }
+            catch
+            {
+                throw;
+            }
+        }
     }
 }
