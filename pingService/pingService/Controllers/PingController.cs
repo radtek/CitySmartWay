@@ -37,7 +37,7 @@ namespace pingService.Controllers
             {
                 case 0:
                         for (int i = 0; i < ping_result.Count; i++)
-                        alarm = alarm || (bool)ping_result[i];
+                        alarm = alarm && (bool)ping_result[i];
 
                         if (alarm)
                             rtn = "PING OK";
@@ -45,9 +45,22 @@ namespace pingService.Controllers
                             rtn = "PING ALARM";
                     
                         break;
-                    
+
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                case 9:
+                case 10:
+                        rtn = "Panel " + (id) + ":" + ping_result[id - 1];
+                    break;
+
                 default:
-                        rtn = "Panel " + (id + 1) + ":" + ping_result[id];
+                        rtn = "Invalid Panel";
 
                         break;
             }
