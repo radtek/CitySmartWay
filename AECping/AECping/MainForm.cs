@@ -481,7 +481,7 @@ namespace AECping
                             for (int i = 0; i < numPanels; i++)
                             {
                                 bool status_bool = false;
-                                if (dataGridView1.Rows[i].Cells[3].Value.Equals("Success(0)"))
+                                if ( dataGridView1.Rows[i].Cells[3].Value.ToString().Substring(0,7).Equals("Success"))
                                     status_bool = true;
 
                                 cmd.CommandText =
