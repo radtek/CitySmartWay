@@ -74,6 +74,7 @@ namespace AECping
                 UserID = data["SQLConfig"]["UserID"]; ;
                 Password = data["SQLConfig"]["Password"]; ;
                 sqlwrite_period = Convert.ToInt16(data["SQLConfig"]["SqlWrite_period"]);
+                
 
                 con_str = "Data Source=" + DataSource + ";Initial Catalog=" + InitialCatalog + ";User ID=" + UserID + ";Password=" + Password + ";";
 
@@ -131,9 +132,10 @@ namespace AECping
             toolStripSplitButton1.AccessibleName="";
             toolStripSplitButton2.AccessibleName = "";
 
-
+            toolStripStatusLabel3.Text = "Timeout=" + ping_timeout + "ms, Period=" + ping_period + "ms, SQL=" + sqlwrite_period+"ms";
 
         }
+
 
         private void resume_thread(object sender, DoWorkEventArgs e)
         {
