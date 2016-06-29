@@ -40,9 +40,9 @@ namespace pingService.Controllers
                         alarm = alarm || (bool)ping_result[i];
 
                         if (alarm)
-                            rtn = "PING ALARM";
-                        else
                             rtn = "PING OK";
+                        else
+                            rtn = "PING ALARM";
                     
                         break;
                     

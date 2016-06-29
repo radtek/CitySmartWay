@@ -480,9 +480,9 @@ namespace AECping
                             //populate the table
                             for (int i = 0; i < numPanels; i++)
                             {
-                                int status_bool = 0;
+                                bool status_bool = false;
                                 if (dataGridView1.Rows[i].Cells[3].Value.Equals("Success(0)"))
-                                    status_bool = 1;
+                                    status_bool = true;
 
                                 cmd.CommandText =
                                     "UPDATE PING_PANEL_LIST " +
