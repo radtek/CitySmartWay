@@ -62,7 +62,7 @@ namespace AECping
             try
             {
                 parser = new FileIniDataParser();
-                data = parser.ReadFile(".\\AECPingConfig.ini");
+                data = parser.ReadFile(".\\Config\\AECPingConfig.ini");
                 numPanels = Convert.ToInt16(data["Config"]["Panels"]);
                 ping_period = Convert.ToInt16(data["Config"]["Ping_period"]);
                 pingresume_period = Convert.ToInt16(data["Config"]["PingResume_period"]);
@@ -107,7 +107,7 @@ namespace AECping
             }
             catch (IniParser.Exceptions.ParsingException ex)
             {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show("Invalid INI File");
             }
            
         }
