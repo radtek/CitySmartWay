@@ -38,14 +38,14 @@ namespace AECSentinel
         IniData data ;
 
         BackgroundWorker bw_resumer = new BackgroundWorker();
-        BackgroundWorker bw_sqlwriter = new BackgroundWorker();
+        //BackgroundWorker bw_sqlwriter = new BackgroundWorker();
         BackgroundWorker bw_btnupdater = new BackgroundWorker();
 
         List<BackgroundWorker> bw_list = new List<BackgroundWorker>();
 
-        List<bool> pingexceptionraised_list = new List<bool>();
-        List<int> pingexceptionfailures_list = new List<int>();
-        List<int> failedping_list = new List<int>();
+       // List<bool> pingexceptionraised_list = new List<bool>();
+       // List<int> pingexceptionfailures_list = new List<int>();
+       // List<int> failedping_list = new List<int>();
 
         //bool sqlwrite_exceptionraised = false;
 
@@ -76,7 +76,7 @@ namespace AECSentinel
                 //sqlwrite_period = Convert.ToInt16(data["SQLConfig"]["SqlWrite_period"]);
                 
 
-                con_str = "Data Source=" + DataSource + ";Initial Catalog=" + InitialCatalog + ";User ID=" + UserID + ";Password=" + Password + ";";
+                //con_str = "Data Source=" + DataSource + ";Initial Catalog=" + InitialCatalog + ";User ID=" + UserID + ";Password=" + Password + ";";
 
                 bw_resumer.WorkerSupportsCancellation = true;
                 bw_resumer.DoWork += new DoWorkEventHandler(resume_thread);
@@ -94,7 +94,7 @@ namespace AECSentinel
                     BackgroundWorker bw = new BackgroundWorker();
                     bw.WorkerSupportsCancellation = true;
                     bw.WorkerReportsProgress = true;
-                    bw.DoWork += new DoWorkEventHandler(pingproc_thread);
+                    bw.DoWork += new DoWorkEventHandler(readproc_thread);
                     bw.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
                     bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
 
@@ -190,7 +190,7 @@ namespace AECSentinel
             }
         }
 
-        private void pingproc_thread(object sender, DoWorkEventArgs e)
+        private void readproc_thread(object sender, DoWorkEventArgs e)
         {
             int num_panel = (int)e.Argument;
             //int num_try = 0;
