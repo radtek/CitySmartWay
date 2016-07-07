@@ -62,7 +62,7 @@ namespace AECSentinel
             try
             {
                 parser = new FileIniDataParser();
-                data = parser.ReadFile(".\\Config\\AECPingConfig.ini");
+                data = parser.ReadFile(".\\Config\\AECSentinelConfig.ini");
                 numPanels = Convert.ToInt16(data["Config"]["Panels"]);
                 read_period = Convert.ToInt16(data["Config"]["Ping_period"]);
                 threadresume_period = Convert.ToInt16(data["Config"]["PingResume_period"]);
