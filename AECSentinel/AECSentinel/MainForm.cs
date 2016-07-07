@@ -15,15 +15,15 @@ using System.Data.SqlClient;
 using IniParser;
 using IniParser.Model;
 
-namespace AECping
+namespace AECSentinel
 {
     
     public partial class MainForm : Form
     {
-        int ping_period;
-        int pingresume_period;
-        int ping_timeout;
-        int sqlwrite_period;
+        int read_period;
+        int threadresume_period;
+        int read_timeout;
+        //int sqlwrite_period;
         int failed_ping_alarm;
         int numPanels;
 
@@ -47,10 +47,10 @@ namespace AECping
         List<int> pingexceptionfailures_list = new List<int>();
         List<int> failedping_list = new List<int>();
 
-        bool sqlwrite_exceptionraised = false;
+        //bool sqlwrite_exceptionraised = false;
 
-        bool SQL_ERROR =false;
-        bool PING_ERROR = false;
+        //bool SQL_ERROR =false;
+        bool READ_ERROR = false;
         bool ALARM = false;
 
         delegate void UpdatelabelCallback(bool allarme);
@@ -64,16 +64,16 @@ namespace AECping
                 parser = new FileIniDataParser();
                 data = parser.ReadFile(".\\Config\\AECPingConfig.ini");
                 numPanels = Convert.ToInt16(data["Config"]["Panels"]);
-                ping_period = Convert.ToInt16(data["Config"]["Ping_period"]);
-                pingresume_period = Convert.ToInt16(data["Config"]["PingResume_period"]);
-                ping_timeout = Convert.ToInt16(data["Config"]["Ping_timeout"]);
+                read_period = Convert.ToInt16(data["Config"]["Ping_period"]);
+                threadresume_period = Convert.ToInt16(data["Config"]["PingResume_period"]);
+                read_timeout = Convert.ToInt16(data["Config"]["Ping_timeout"]);
                 failed_ping_alarm = Convert.ToInt16(data["Config"]["Failed_Ping_Alarm"]);
 
                 DataSource = data["SQLConfig"]["DataSource"];
                 InitialCatalog = data["SQLConfig"]["InitialCatalog"]; ;
                 UserID = data["SQLConfig"]["UserID"]; ;
                 Password = data["SQLConfig"]["Password"]; ;
-                sqlwrite_period = Convert.ToInt16(data["SQLConfig"]["SqlWrite_period"]);
+                //sqlwrite_period = Convert.ToInt16(data["SQLConfig"]["SqlWrite_period"]);
                 
 
                 con_str = "Data Source=" + DataSource + ";Initial Catalog=" + InitialCatalog + ";User ID=" + UserID + ";Password=" + Password + ";";
@@ -81,8 +81,8 @@ namespace AECping
                 bw_resumer.WorkerSupportsCancellation = true;
                 bw_resumer.DoWork += new DoWorkEventHandler(resume_thread);
 
-                bw_sqlwriter.WorkerSupportsCancellation = true;
-                bw_sqlwriter.DoWork += new DoWorkEventHandler(writesql_thread);
+                //bw_sqlwriter.WorkerSupportsCancellation = true;
+                //bw_sqlwriter.DoWork += new DoWorkEventHandler(writesql_thread);
 
                 bw_btnupdater.WorkerSupportsCancellation = true;
                 bw_btnupdater.DoWork += new DoWorkEventHandler(updatebtn_thread);
@@ -127,12 +127,12 @@ namespace AECping
             btn_pingstart.Enabled = true;
             btn_pingstop.Enabled = false;
 
-            toolStripSplitButton1.Image = global::AECping.Properties.Resources.BLUEBTN;
-            toolStripSplitButton2.Image = global::AECping.Properties.Resources.BLUEBTN;
-            toolStripSplitButton1.AccessibleName="";
-            toolStripSplitButton2.AccessibleName = "";
+            //toolStripStatusLabel1.Image = global::AECping.Properties.Resources.BLUEBTN;
+            //toolStripStatusLabel2.Image = global::AECping.Properties.Resources.BLUEBTN;
+            toolStripStatusLabel1.AccessibleName="";
+            toolStripStatusLabel2.AccessibleName = "";
 
-            toolStripStatusLabel3.Text = "Timeout=" + ping_timeout + "ms, Period=" + ping_period + "ms, SQL=" + sqlwrite_period+"ms";
+            toolStripStatusLabel3.Text = "Timeout=" + read_timeout + "ms, Period=" + read_period + "ms, SQL=";// + sqlwrite_period+"ms";
 
         }
 
@@ -171,10 +171,10 @@ namespace AECping
 
                         i++;
                     }
-                    if (num_ping_err == 0) PING_ERROR = false;
+                    if (num_ping_err == 0) READ_ERROR = false;
 
 
-                    if (sqlwrite_exceptionraised)
+                    /*if (sqlwrite_exceptionraised)
                     {
                         if (bw_sqlwriter.IsBusy != true)
                         {
@@ -182,9 +182,9 @@ namespace AECping
                         }
                        
                     }
-                    else SQL_ERROR = false;
+                    else SQL_ERROR = false;*/
 
-                    Thread.Sleep(pingresume_period);
+                    Thread.Sleep(threadresume_period);
                 };
 
             }
@@ -193,7 +193,7 @@ namespace AECping
         private void pingproc_thread(object sender, DoWorkEventArgs e)
         {
             int num_panel = (int)e.Argument;
-            int num_try = 0;
+            //int num_try = 0;
 
             try
             {
@@ -203,7 +203,7 @@ namespace AECping
 
                 Debug.WriteLine("bw"+ num_panel+"_ID:"+Thread.CurrentThread.ManagedThreadId);
                 
-                Ping Ping_Sender = new Ping();
+                /*Ping Ping_Sender = new Ping();
                 PingReply Ping_Reply;
                 PingOptions Ping_Options = new PingOptions();
 
@@ -214,7 +214,7 @@ namespace AECping
 
          
                 Ping_Options.Ttl = 128;
-                Ping_Options.DontFragment = true;
+                Ping_Options.DontFragment = true;*/
 
                 dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.Silver;
 
@@ -233,7 +233,7 @@ namespace AECping
                     else
                     {
 
-                        Ping_Reply = Ping_Sender.Send(IPaddress, timeout, ping_buffer, Ping_Options);
+                        /*Ping_Reply = Ping_Sender.Send(IPaddress, timeout, ping_buffer, Ping_Options);
 
                         if (Ping_Reply.Status != IPStatus.Success)
                         {
@@ -265,8 +265,8 @@ namespace AECping
                             dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.Red;
                             ALARM = true;
                         }
-
-                        Thread.Sleep(ping_period);
+                        */
+                        Thread.Sleep(read_period);
 
                     };
 
@@ -291,12 +291,12 @@ namespace AECping
             {
                 pingexceptionraised_list[num_panel] = true;
                 pingexceptionfailures_list[num_panel]++;
-                num_try = 0;
+                //num_try = 0;
 
                 Debug.Write("bw" + num_panel + ":Ping Exception");
                 dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.Orange;
                 dataGridView1.Rows[num_panel].Cells[3].Value = "PING ERR("+pingexceptionfailures_list[num_panel]+")";
-                PING_ERROR = true;
+                READ_ERROR = true;
             }
 
         }
@@ -331,8 +331,8 @@ namespace AECping
                 bw_sqlwriter.RunWorkerAsync();
             }
 
-            SQL_ERROR = false; 
-            PING_ERROR = false;
+            //SQL_ERROR = false; 
+            READ_ERROR = false;
 
             if (bw_btnupdater.IsBusy != true)
             {
@@ -379,10 +379,10 @@ namespace AECping
             btn_pingstart.Enabled = true;
             btn_pingstop.Enabled = false;
 
-            toolStripSplitButton1.Image = global::AECping.Properties.Resources.BLUEBTN;
-            toolStripSplitButton2.Image = global::AECping.Properties.Resources.BLUEBTN;
-            toolStripSplitButton1.AccessibleName = "";
-            toolStripSplitButton2.AccessibleName = "";
+            //toolStripStatusLabel1.Image = global::AECping.Properties.Resources.BLUEBTN;
+            //toolStripStatusLabel2.Image = global::AECping.Properties.Resources.BLUEBTN;
+            toolStripStatusLabel1.AccessibleName = "";
+            toolStripStatusLabel2.AccessibleName = "";
         }
 
 
@@ -424,11 +424,11 @@ namespace AECping
 
         private void writesql_thread (object sender, DoWorkEventArgs e)
         {
-            string cmd_str;
+            //string cmd_str;
             BackgroundWorker worker = sender as BackgroundWorker;
-            sqlwrite_exceptionraised=false;
+            //sqlwrite_exceptionraised=false;
             
-            try
+            /*try
             {
 
                 using (SqlConnection con = new SqlConnection(con_str))
@@ -508,7 +508,7 @@ namespace AECping
             {
                 sqlwrite_exceptionraised = true;
                 SQL_ERROR = true;
-            }
+            }*/
         }
 
         private void updatebtn_thread(object sender, DoWorkEventArgs e)
@@ -528,37 +528,37 @@ namespace AECping
                     }
                     else
                     {
-                        if (SQL_ERROR)
+                        /*if (SQL_ERROR)
                         {
-                            if (!(toolStripSplitButton1.AccessibleName.Equals("RED")))
+                            if (!(toolStripStatusLabel1.AccessibleName.Equals("RED")))
                             {
-                                toolStripSplitButton1.Image = global::AECping.Properties.Resources.REDBTN;
-                                toolStripSplitButton1.AccessibleName = "RED";
+ //                               toolStripStatusLabel1.Image = global::AECping.Properties.Resources.REDBTN;
+                                toolStripStatusLabel1.AccessibleName = "RED";
                             }
                         }
                         else
                         {
-                            if (!(toolStripSplitButton1.AccessibleName.Equals("GREEN")))
+                            if (!(toolStripStatusLabel1.AccessibleName.Equals("GREEN")))
                             {
-                                toolStripSplitButton1.Image = global::AECping.Properties.Resources.GREENBTN;
-                                toolStripSplitButton1.AccessibleName = "GREEN";
+                                //toolStripStatusLabel1.Image = global::AECping.Properties.Resources.GREENBTN;
+                                toolStripStatusLabel1.AccessibleName = "GREEN";
                             }
                         }
-
-                        if (PING_ERROR)
+                        */
+                        if (READ_ERROR)
                         {
-                            if (!(toolStripSplitButton2.AccessibleName.Equals("RED")))
+                            if (!(toolStripStatusLabel2.AccessibleName.Equals("RED")))
                             {
-                                toolStripSplitButton2.Image = global::AECping.Properties.Resources.REDBTN;
-                                toolStripSplitButton2.AccessibleName = "RED";
+ //                               toolStripStatusLabel2.Image = global::AECping.Properties.Resources.REDBTN;
+                                toolStripStatusLabel2.AccessibleName = "RED";
                             }
                         }
                         else
                         {
-                            if (!(toolStripSplitButton2.AccessibleName.Equals("GREEN")))
+                            if (!(toolStripStatusLabel2.AccessibleName.Equals("GREEN")))
                             {
-                                toolStripSplitButton2.Image = global::AECping.Properties.Resources.GREENBTN;
-                                toolStripSplitButton2.AccessibleName = "GREEN";
+ //                               toolStripStatusLabel2.Image = global::AECping.Properties.Resources.GREENBTN;
+                                toolStripStatusLabel2.AccessibleName = "GREEN";
                             }
                         }
 
