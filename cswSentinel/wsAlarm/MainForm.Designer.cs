@@ -1,4 +1,4 @@
-﻿namespace wsAlarm
+﻿namespace cswSentinel
 {
     partial class MainForm
     {
@@ -37,9 +37,9 @@
             this.btn_pingstart = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.label1 = new System.Windows.Forms.Label();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.label1 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -123,9 +123,25 @@
             // 
             // toolStripStatusLabel1
             // 
+            this.toolStripStatusLabel1.Image = global::cswSentinel.Properties.Resources.BLUEBTN;
             this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             this.toolStripStatusLabel1.Size = new System.Drawing.Size(87, 17);
             this.toolStripStatusLabel1.Text = "Web Service";
+            // 
+            // toolStripStatusLabel2
+            // 
+            this.toolStripStatusLabel2.Image = global::cswSentinel.Properties.Resources.BLUEBTN;
+            this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
+            this.toolStripStatusLabel2.Size = new System.Drawing.Size(68, 17);
+            this.toolStripStatusLabel2.Text = "Network";
+            // 
+            // toolStripStatusLabel3
+            // 
+            this.toolStripStatusLabel3.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.toolStripStatusLabel3.Name = "toolStripStatusLabel3";
+            this.toolStripStatusLabel3.Size = new System.Drawing.Size(387, 17);
+            this.toolStripStatusLabel3.Spring = true;
+            this.toolStripStatusLabel3.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // label1
             // 
@@ -140,20 +156,6 @@
             this.label1.TabIndex = 3;
             this.label1.Text = "ALARM";
             // 
-            // toolStripStatusLabel2
-            // 
-            this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-            this.toolStripStatusLabel2.Size = new System.Drawing.Size(68, 17);
-            this.toolStripStatusLabel2.Text = "Network";
-            // 
-            // toolStripStatusLabel3
-            // 
-            this.toolStripStatusLabel3.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.toolStripStatusLabel3.Name = "toolStripStatusLabel3";
-            this.toolStripStatusLabel3.Size = new System.Drawing.Size(356, 17);
-            this.toolStripStatusLabel3.Spring = true;
-            this.toolStripStatusLabel3.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -165,7 +167,7 @@
             this.Controls.Add(this.btn_pingstop);
             this.Controls.Add(this.dataGridView1);
             this.Name = "MainForm";
-            this.Text = "AEC City SmartWay KeepAlive";
+            this.Text = "AEC City SmartWay Sentinel";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.Load += new System.EventHandler(this.MainForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
