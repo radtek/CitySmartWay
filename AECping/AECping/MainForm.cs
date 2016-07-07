@@ -127,10 +127,10 @@ namespace AECping
             btn_pingstart.Enabled = true;
             btn_pingstop.Enabled = false;
 
-            toolStripSplitButton1.Image = global::AECping.Properties.Resources.BLUEBTN;
-            toolStripSplitButton2.Image = global::AECping.Properties.Resources.BLUEBTN;
-            toolStripSplitButton1.AccessibleName="";
-            toolStripSplitButton2.AccessibleName = "";
+            toolStripStatusLabel1.Image = global::AECping.Properties.Resources.BLUEBTN;
+            toolStripStatusLabel2.Image = global::AECping.Properties.Resources.BLUEBTN;
+            toolStripStatusLabel1.AccessibleName="";
+            toolStripStatusLabel2.AccessibleName = "";
 
             toolStripStatusLabel3.Text = "Timeout=" + ping_timeout + "ms, Period=" + ping_period + "ms, SQL=" + sqlwrite_period+"ms";
 
@@ -379,10 +379,10 @@ namespace AECping
             btn_pingstart.Enabled = true;
             btn_pingstop.Enabled = false;
 
-            toolStripSplitButton1.Image = global::AECping.Properties.Resources.BLUEBTN;
-            toolStripSplitButton2.Image = global::AECping.Properties.Resources.BLUEBTN;
-            toolStripSplitButton1.AccessibleName = "";
-            toolStripSplitButton2.AccessibleName = "";
+            toolStripStatusLabel1.Image = global::AECping.Properties.Resources.BLUEBTN;
+            toolStripStatusLabel2.Image = global::AECping.Properties.Resources.BLUEBTN;
+            toolStripStatusLabel1.AccessibleName = "";
+            toolStripStatusLabel2.AccessibleName = "";
         }
 
 
@@ -530,35 +530,35 @@ namespace AECping
                     {
                         if (SQL_ERROR)
                         {
-                            if (!(toolStripSplitButton1.AccessibleName.Equals("RED")))
+                            if (!(toolStripStatusLabel1.AccessibleName.Equals("RED")))
                             {
-                                toolStripSplitButton1.Image = global::AECping.Properties.Resources.REDBTN;
-                                toolStripSplitButton1.AccessibleName = "RED";
+                                toolStripStatusLabel1.Image = global::AECping.Properties.Resources.REDBTN;
+                                toolStripStatusLabel1.AccessibleName = "RED";
                             }
                         }
                         else
                         {
-                            if (!(toolStripSplitButton1.AccessibleName.Equals("GREEN")))
+                            if (!(toolStripStatusLabel1.AccessibleName.Equals("GREEN")))
                             {
-                                toolStripSplitButton1.Image = global::AECping.Properties.Resources.GREENBTN;
-                                toolStripSplitButton1.AccessibleName = "GREEN";
+                                toolStripStatusLabel1.Image = global::AECping.Properties.Resources.GREENBTN;
+                                toolStripStatusLabel1.AccessibleName = "GREEN";
                             }
                         }
 
                         if (PING_ERROR)
                         {
-                            if (!(toolStripSplitButton2.AccessibleName.Equals("RED")))
+                            if (!(toolStripStatusLabel2.AccessibleName.Equals("RED")))
                             {
-                                toolStripSplitButton2.Image = global::AECping.Properties.Resources.REDBTN;
-                                toolStripSplitButton2.AccessibleName = "RED";
+                                toolStripStatusLabel2.Image = global::AECping.Properties.Resources.REDBTN;
+                                toolStripStatusLabel2.AccessibleName = "RED";
                             }
                         }
                         else
                         {
-                            if (!(toolStripSplitButton2.AccessibleName.Equals("GREEN")))
+                            if (!(toolStripStatusLabel2.AccessibleName.Equals("GREEN")))
                             {
-                                toolStripSplitButton2.Image = global::AECping.Properties.Resources.GREENBTN;
-                                toolStripSplitButton2.AccessibleName = "GREEN";
+                                toolStripStatusLabel2.Image = global::AECping.Properties.Resources.GREENBTN;
+                                toolStripStatusLabel2.AccessibleName = "GREEN";
                             }
                         }
 
@@ -593,5 +593,6 @@ namespace AECping
 
         }
 
+        
     }
 }
