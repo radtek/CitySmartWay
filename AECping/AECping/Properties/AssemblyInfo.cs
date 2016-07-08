@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // Le informazioni generali relative a un assembly sono controllate dal seguente 
 // set di attributi. Modificare i valori di questi attributi per modificare le informazioni
 // associate a un assembly.
-[assembly: AssemblyTitle("AEC Ping Keep Alive")]
+[assembly: AssemblyTitle("AEC CitySmartway Ping Service")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("AEC Illuminazione SRL")]
-[assembly: AssemblyProduct("AECping")]
+[assembly: AssemblyProduct("AEC  CitySmartway Ping Service")]
 [assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("AEC Illuminazione SRL")]
 [assembly: AssemblyCulture("")]

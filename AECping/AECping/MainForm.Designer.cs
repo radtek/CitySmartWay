@@ -29,10 +29,6 @@
         private void InitializeComponent()
         {
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.Host = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.IP = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ResponseTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Status = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.btn_pingstop = new System.Windows.Forms.Button();
             this.btn_pingstart = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
@@ -40,6 +36,10 @@
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
             this.label1 = new System.Windows.Forms.Label();
+            this.Host = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.IP = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ResponseTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Status = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -57,30 +57,6 @@
             this.dataGridView1.RowHeadersVisible = false;
             this.dataGridView1.Size = new System.Drawing.Size(437, 271);
             this.dataGridView1.TabIndex = 0;
-            // 
-            // Host
-            // 
-            this.Host.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.Host.HeaderText = "Panel";
-            this.Host.Name = "Host";
-            // 
-            // IP
-            // 
-            this.IP.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.IP.HeaderText = "IP Address";
-            this.IP.Name = "IP";
-            // 
-            // ResponseTime
-            // 
-            this.ResponseTime.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.ResponseTime.HeaderText = "Response";
-            this.ResponseTime.Name = "ResponseTime";
-            // 
-            // Status
-            // 
-            this.Status.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.Status.HeaderText = "Status";
-            this.Status.Name = "Status";
             // 
             // btn_pingstop
             // 
@@ -125,19 +101,21 @@
             this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             this.toolStripStatusLabel1.Size = new System.Drawing.Size(79, 17);
             this.toolStripStatusLabel1.Text = "SQL Status";
-             // 
+            // 
             // toolStripStatusLabel2
             // 
             this.toolStripStatusLabel2.Image = global::AECping.Properties.Resources.BLUEBTN;
             this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-            this.toolStripStatusLabel2.Size = new System.Drawing.Size(85, 17);
-            this.toolStripStatusLabel2.Text = "PING Status";
+            this.toolStripStatusLabel2.Size = new System.Drawing.Size(81, 17);
+            this.toolStripStatusLabel2.Text = "LAN Status";
             // 
             // toolStripStatusLabel3
             // 
             this.toolStripStatusLabel3.Name = "toolStripStatusLabel3";
-            this.toolStripStatusLabel3.Size = new System.Drawing.Size(118, 17);
+            this.toolStripStatusLabel3.Size = new System.Drawing.Size(382, 17);
+            this.toolStripStatusLabel3.Spring = true;
             this.toolStripStatusLabel3.Text = "toolStripStatusLabel3";
+            this.toolStripStatusLabel3.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // label1
             // 
@@ -152,6 +130,30 @@
             this.label1.TabIndex = 3;
             this.label1.Text = "ALARM";
             // 
+            // Host
+            // 
+            this.Host.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Host.HeaderText = "Panel";
+            this.Host.Name = "Host";
+            // 
+            // IP
+            // 
+            this.IP.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.IP.HeaderText = "IP Address";
+            this.IP.Name = "IP";
+            // 
+            // ResponseTime
+            // 
+            this.ResponseTime.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.ResponseTime.HeaderText = "Response";
+            this.ResponseTime.Name = "ResponseTime";
+            // 
+            // Status
+            // 
+            this.Status.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Status.HeaderText = "Status";
+            this.Status.Name = "Status";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -163,7 +165,7 @@
             this.Controls.Add(this.btn_pingstop);
             this.Controls.Add(this.dataGridView1);
             this.Name = "MainForm";
-            this.Text = "AEC City SmartWay KeepAlive";
+            this.Text = "AEC City SmartWay Ping Server";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.Load += new System.EventHandler(this.MainForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
@@ -179,15 +181,15 @@
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.Button btn_pingstop;
         private System.Windows.Forms.Button btn_pingstart;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Host;
-        private System.Windows.Forms.DataGridViewTextBoxColumn IP;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ResponseTime;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Status;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel2;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel3;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Host;
+        private System.Windows.Forms.DataGridViewTextBoxColumn IP;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ResponseTime;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Status;
     }
 }
 

@@ -46,6 +46,7 @@ namespace AECping
         List<bool> pingexceptionraised_list = new List<bool>();
         List<int> pingexceptionfailures_list = new List<int>();
         List<int> failedping_list = new List<int>();
+        List<bool> panelalarm_list = new List<bool>();
 
         bool sqlwrite_exceptionraised = false;
 
@@ -103,6 +104,7 @@ namespace AECping
                     pingexceptionraised_list.Add(false);
                     pingexceptionfailures_list.Add(0);
                     failedping_list.Add(0);
+                    panelalarm_list.Add(false);
                 }
             }
             catch (IniParser.Exceptions.ParsingException )
@@ -132,7 +134,11 @@ namespace AECping
             toolStripStatusLabel1.AccessibleName="";
             toolStripStatusLabel2.AccessibleName = "";
 
-            toolStripStatusLabel3.Text = "Timeout=" + ping_timeout + "ms, Period=" + ping_period + "ms, SQL=" + sqlwrite_period+"ms";
+            toolStripStatusLabel3.Text = 
+                "Timeout=" + ping_timeout + 
+                "ms, Period=" + ping_period + 
+                "ms, SQL=" + sqlwrite_period + 
+                "ms, Attempt=" + failed_ping_alarm;
 
         }
 
@@ -194,7 +200,7 @@ namespace AECping
         {
             int num_panel = (int)e.Argument;
             int num_try = 0;
-
+           
             try
             {
                 BackgroundWorker worker = sender as BackgroundWorker;
@@ -257,13 +263,19 @@ namespace AECping
                         //Debug.WriteLine("Host:{3}, Status:{0}, RTT:{1}, TTL:{2}", Ping_Reply.Status, Ping_Reply.RoundtripTime, Ping_Reply.Options.Ttl, (int)e.Argument);
 
                         if (failedping_list[num_panel] == 0)
+                        {
                             dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.LightGreen;
+                            panelalarm_list[num_panel] = false;
+                        }
                         else if (failedping_list[num_panel] < failed_ping_alarm)
+                        {
                             dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.Yellow;
+                        }
                         else
                         {
                             dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.Red;
-                            ALARM = true;
+                            panelalarm_list[num_panel] = true;
+                            //ALARM = true;
                         }
 
                         Thread.Sleep(ping_period);
@@ -481,7 +493,8 @@ namespace AECping
                             for (int i = 0; i < numPanels; i++)
                             {
                                 bool status_bool = false;
-                                if ( dataGridView1.Rows[i].Cells[3].Value.ToString().Substring(0,7).Equals("Success"))
+                                //if ( dataGridView1.Rows[i].Cells[3].Value.ToString().Substring(0,7).Equals("Success"))
+                                if (failedping_list[i] >= failed_ping_alarm)
                                     status_bool = true;
 
                                 cmd.CommandText =
@@ -562,7 +575,12 @@ namespace AECping
                             }
                         }
 
-                        this.updatelabel_thread(ALARM);
+                        ALARM = false;
+                        for (int i = 0; i < numPanels; i++)
+                        {
+                            ALARM = ALARM || panelalarm_list[i];
+                        }
+                        this.updatelabel_fromthread(ALARM);
                                     
 
                     }
@@ -576,12 +594,12 @@ namespace AECping
             }
         }
 
-        private void updatelabel_thread(bool allarme)
+        private void updatelabel_fromthread(bool allarme)
         {
             if (this.label1.InvokeRequired)
             {
-                UpdatelabelCallback d = new UpdatelabelCallback(updatelabel_thread);
-                this.Invoke(d, new object[] {allarme });
+                UpdatelabelCallback d = new UpdatelabelCallback(updatelabel_fromthread);
+                this.Invoke(d, new object[] { allarme });
             }
             else
             {

@@ -22,5 +22,16 @@ namespace AECping.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=AECW8VM001\\AECW8VM001;Initial Catalog=AEC_DBUT;Persist Security Info=" +
+            "True;User ID=dmzuser2")]
+        public string AEC_DBUTConnectionString {
+            get {
+                return ((string)(this["AEC_DBUTConnectionString"]));
+            }
+        }
     }
 }
