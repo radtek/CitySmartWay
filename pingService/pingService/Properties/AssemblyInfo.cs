@@ -1,17 +1,18 @@
-﻿using System.Reflection;
+﻿using System.Resources;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // Le informazioni generali relative a un assembly sono controllate dal seguente
 // set di attributi. Modificare i valori di questi attributi per modificare le informazioni
 // associate a un assembly.
-[assembly: AssemblyTitle("pingService")]
+[assembly: AssemblyTitle("AEC CitySmartWay Ping Web Service")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("pingService")]
+[assembly: AssemblyCompany("AEC Illuminazione Srl")]
+[assembly: AssemblyProduct("AEC CitySmartWay Ping Web Service")]
 [assembly: AssemblyCopyright("Copyright ©  2016")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyTrademark("AEC Illuminazione Srl")]
 [assembly: AssemblyCulture("")]
 
 // Se si imposta il valore di ComVisible su falso, i tipi nell'assembly non sono più visibili
@@ -33,3 +34,5 @@ using System.Runtime.InteropServices;
 // utilizzando l'asterisco (*) come illustrato di seguito:
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: NeutralResourcesLanguage("it-IT")]
+

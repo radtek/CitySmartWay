@@ -29,7 +29,7 @@ namespace pingService.Controllers
         public string Get(int id)
         {
             string rtn = "";
-            bool panelok = true;
+            bool ping_alarm = false;
 
             getsql();
 
@@ -37,12 +37,12 @@ namespace pingService.Controllers
             {
                 case 0:
                         for (int i = 0; i < ping_result.Count; i++)
-                        panelok = panelok && (bool)ping_result[i];
+                        ping_alarm = ping_alarm || (bool)ping_result[i];
 
-                        if (panelok)
-                            rtn = "PING OK";
-                        else
+                        if (ping_alarm)
                             rtn = "PING ALARM";
+                        else
+                            rtn = "PING OK";
                     
                         break;
 
