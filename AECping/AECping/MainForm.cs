@@ -33,10 +33,12 @@ namespace AECping
         string Password;
         string con_str;
 
+        string INIConfigFile = ".\\Config\\AECPingConfig.ini";
+
         FileIniDataParser parser;
         string PanelININame;
         IniData data ;
-
+        
         BackgroundWorker bw_resumer = new BackgroundWorker();
         BackgroundWorker bw_sqlwriter = new BackgroundWorker();
         BackgroundWorker bw_btnupdater = new BackgroundWorker();
@@ -63,7 +65,7 @@ namespace AECping
             try
             {
                 parser = new FileIniDataParser();
-                data = parser.ReadFile(".\\Config\\AECPingConfig.ini");
+                data = parser.ReadFile(INIConfigFile);
                 numPanels = Convert.ToInt16(data["Config"]["Panels"]);
                 ping_period = Convert.ToInt16(data["Config"]["Ping_period"]);
                 pingresume_period = Convert.ToInt16(data["Config"]["PingResume_period"]);
@@ -492,10 +494,10 @@ namespace AECping
                             //populate the table
                             for (int i = 0; i < numPanels; i++)
                             {
-                                bool status_bool = false;
+                                //bool status_bool = false;
                                 //if ( dataGridView1.Rows[i].Cells[3].Value.ToString().Substring(0,7).Equals("Success"))
-                                if (failedping_list[i] >= failed_ping_alarm)
-                                    status_bool = true;
+                                //if (failedping_list[i] >= failed_ping_alarm)
+                                //    status_bool = true;
 
                                 cmd.CommandText =
                                     "UPDATE PING_PANEL_LIST " +
@@ -505,7 +507,7 @@ namespace AECping
                                     "STATUS='" +
                                     dataGridView1.Rows[i].Cells[3].Value.ToString() + "'," +
                                     "STATUS_BOOL='" +
-                                    status_bool + "'" +
+                                    panelalarm_list[i] + "'" +
                                     " WHERE ID='" + i + "';";
 
                                 cmd.ExecuteNonQuery();
@@ -611,6 +613,9 @@ namespace AECping
 
         }
 
-        
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Process.Start(INIConfigFile);
+        }
     }
 }
