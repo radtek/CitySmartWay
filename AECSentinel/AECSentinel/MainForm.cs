@@ -15,6 +15,8 @@ using System.Data.SqlClient;
 using IniParser;
 using IniParser.Model;
 
+using csw_lib;
+
 namespace AECSentinel
 {
     
@@ -382,7 +384,7 @@ namespace AECSentinel
         }
 
 
-        /// <summary>updatebtn_thread updates the button images in the form.
+        /// <summary>Updates the button images in the form.
         /// </summary>
         private void updatebtn_thread(object sender, DoWorkEventArgs e)
         {
@@ -419,7 +421,7 @@ namespace AECSentinel
                             }
                         }
 
-                        this.updatelabel_thread(ALARM);
+                        this.updatelabel_fromthread(ALARM);
                                     
 
                     }
@@ -433,11 +435,13 @@ namespace AECSentinel
             }
         }
 
-        private void updatelabel_thread(bool allarme)
+        /// <summary>Updates the label visibility ALARM images in the form. Invoked by updatebtn_thread
+        /// </summary>
+        private void updatelabel_fromthread(bool allarme)
         {
             if (this.label1.InvokeRequired)
             {
-                UpdatelabelCallback d = new UpdatelabelCallback(updatelabel_thread);
+                UpdatelabelCallback d = new UpdatelabelCallback(updatelabel_fromthread);
                 this.Invoke(d, new object[] {allarme });
             }
             else

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using RestSharp;
 using Newtonsoft.Json;
-using csw_wstest.Properties;
+using AECSentinel.Properties;
 
 
 namespace csw_lib
