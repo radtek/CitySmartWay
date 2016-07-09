@@ -20,11 +20,11 @@ namespace AECSentinel
     
     public partial class MainForm : Form
     {
-        int read_period;
+        int query_period;
         int threadresume_period;
         int read_timeout;
         //int sqlwrite_period;
-        int failed_ping_alarm;
+        int failed_query_alarm;
         int numPanels;
 
         string DataSource;
@@ -38,19 +38,16 @@ namespace AECSentinel
         IniData data ;
 
         BackgroundWorker bw_resumer = new BackgroundWorker();
-        //BackgroundWorker bw_sqlwriter = new BackgroundWorker();
         BackgroundWorker bw_btnupdater = new BackgroundWorker();
 
         List<BackgroundWorker> bw_list = new List<BackgroundWorker>();
 
-       // List<bool> pingexceptionraised_list = new List<bool>();
-       // List<int> pingexceptionfailures_list = new List<int>();
-       // List<int> failedping_list = new List<int>();
+        List<bool> Linkexceptionraised_list = new List<bool>();
+        List<int> Linkexceptionfailures_list = new List<int>();
+        List<int> failedquery_list = new List<int>();
 
-        //bool sqlwrite_exceptionraised = false;
-
-        //bool SQL_ERROR =false;
-        bool READ_ERROR = false;
+       
+        bool LINK_ERROR = false;
         bool ALARM = false;
 
         delegate void UpdatelabelCallback(bool allarme);
@@ -64,25 +61,18 @@ namespace AECSentinel
                 parser = new FileIniDataParser();
                 data = parser.ReadFile(".\\Config\\AECSentinelConfig.ini");
                 numPanels = Convert.ToInt16(data["Config"]["Panels"]);
-                read_period = Convert.ToInt16(data["Config"]["Ping_period"]);
+                query_period = Convert.ToInt16(data["Config"]["Ping_period"]);
                 threadresume_period = Convert.ToInt16(data["Config"]["PingResume_period"]);
                 read_timeout = Convert.ToInt16(data["Config"]["Ping_timeout"]);
-                failed_ping_alarm = Convert.ToInt16(data["Config"]["Failed_Ping_Alarm"]);
+                failed_query_alarm = Convert.ToInt16(data["Config"]["Failed_Ping_Alarm"]);
 
                 DataSource = data["SQLConfig"]["DataSource"];
                 InitialCatalog = data["SQLConfig"]["InitialCatalog"]; ;
                 UserID = data["SQLConfig"]["UserID"]; ;
                 Password = data["SQLConfig"]["Password"]; ;
-                //sqlwrite_period = Convert.ToInt16(data["SQLConfig"]["SqlWrite_period"]);
                 
-
-                //con_str = "Data Source=" + DataSource + ";Initial Catalog=" + InitialCatalog + ";User ID=" + UserID + ";Password=" + Password + ";";
-
                 bw_resumer.WorkerSupportsCancellation = true;
                 bw_resumer.DoWork += new DoWorkEventHandler(resume_thread);
-
-                //bw_sqlwriter.WorkerSupportsCancellation = true;
-                //bw_sqlwriter.DoWork += new DoWorkEventHandler(writesql_thread);
 
                 bw_btnupdater.WorkerSupportsCancellation = true;
                 bw_btnupdater.DoWork += new DoWorkEventHandler(updatebtn_thread);
@@ -94,15 +84,14 @@ namespace AECSentinel
                     BackgroundWorker bw = new BackgroundWorker();
                     bw.WorkerSupportsCancellation = true;
                     bw.WorkerReportsProgress = true;
-                    bw.DoWork += new DoWorkEventHandler(readproc_thread);
+                    bw.DoWork += new DoWorkEventHandler(queryproc_thread);
                     bw.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
                     bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
 
                     bw_list.Add(bw);
 
-                    pingexceptionraised_list.Add(false);
-                    pingexceptionfailures_list.Add(0);
-                    failedping_list.Add(0);
+                    Linkexceptionraised_list.Add(false);
+                    Linkexceptionfailures_list.Add(0);
                 }
             }
             catch (IniParser.Exceptions.ParsingException )
@@ -124,15 +113,15 @@ namespace AECSentinel
                 dataGridView1.Rows.Add(line[0], line[1]);
             }
 
-            btn_pingstart.Enabled = true;
-            btn_pingstop.Enabled = false;
+            btn_startquery.Enabled = true;
+            btn_stopquery.Enabled = false;
 
             //toolStripStatusLabel1.Image = global::AECping.Properties.Resources.BLUEBTN;
             //toolStripStatusLabel2.Image = global::AECping.Properties.Resources.BLUEBTN;
             toolStripStatusLabel1.AccessibleName="";
             toolStripStatusLabel2.AccessibleName = "";
 
-            toolStripStatusLabel3.Text = "Timeout=" + read_timeout + "ms, Period=" + read_period + "ms, SQL=";// + sqlwrite_period+"ms";
+            toolStripStatusLabel3.Text = "Timeout=" + read_timeout + "ms, Period=" + query_period + "ms";
 
         }
 
@@ -155,9 +144,9 @@ namespace AECSentinel
                 }
                 else
                 {
-                    int num_ping_err = 0;
+                    int num_link_err = 0;
                     int i = 0;
-                    foreach (bool s in new System.Collections.ArrayList(pingexceptionraised_list))
+                    foreach (bool s in new System.Collections.ArrayList(Linkexceptionraised_list))
                     {
 
                         if (s)
@@ -166,31 +155,22 @@ namespace AECSentinel
                             {
                                  bw_list[i].RunWorkerAsync(i);
                             }
-                            num_ping_err++;
+                            num_link_err++;
                         }
 
                         i++;
                     }
-                    if (num_ping_err == 0) READ_ERROR = false;
+                    if (num_link_err == 0) LINK_ERROR = false;
 
 
-                    /*if (sqlwrite_exceptionraised)
-                    {
-                        if (bw_sqlwriter.IsBusy != true)
-                        {
-                            bw_sqlwriter.RunWorkerAsync();
-                        }
-                       
-                    }
-                    else SQL_ERROR = false;*/
-
+                    
                     Thread.Sleep(threadresume_period);
                 };
 
             }
         }
 
-        private void readproc_thread(object sender, DoWorkEventArgs e)
+        private void queryproc_thread(object sender, DoWorkEventArgs e)
         {
             int num_panel = (int)e.Argument;
             //int num_try = 0;
@@ -198,8 +178,8 @@ namespace AECSentinel
             try
             {
                 BackgroundWorker worker = sender as BackgroundWorker;
-                pingexceptionfailures_list[num_panel] = 0;
-                pingexceptionraised_list[num_panel] = false;
+                Linkexceptionfailures_list[num_panel] = 0;
+                Linkexceptionraised_list[num_panel] = false;
 
                 Debug.WriteLine("bw"+ num_panel+"_ID:"+Thread.CurrentThread.ManagedThreadId);
                 
@@ -220,7 +200,7 @@ namespace AECSentinel
 
                 
 
-                Debug.WriteLine("Ping thread started");
+                Debug.WriteLine("Query thread started");
 
                 while (true)
                 {
@@ -266,7 +246,7 @@ namespace AECSentinel
                             ALARM = true;
                         }
                         */
-                        Thread.Sleep(read_period);
+                        Thread.Sleep(query_period);
 
                     };
 
@@ -289,19 +269,19 @@ namespace AECSentinel
 
             catch (PingException)
             {
-                pingexceptionraised_list[num_panel] = true;
-                pingexceptionfailures_list[num_panel]++;
+                Linkexceptionraised_list[num_panel] = true;
+                Linkexceptionfailures_list[num_panel]++;
                 //num_try = 0;
 
-                Debug.Write("bw" + num_panel + ":Ping Exception");
+                Debug.Write("bw" + num_panel + ":Link Exception");
                 dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.Orange;
-                dataGridView1.Rows[num_panel].Cells[3].Value = "PING ERR("+pingexceptionfailures_list[num_panel]+")";
-                READ_ERROR = true;
+                dataGridView1.Rows[num_panel].Cells[3].Value = "LINK ERR("+Linkexceptionfailures_list[num_panel]+")";
+                LINK_ERROR = true;
             }
 
         }
 
-        private void btn_pingstart_Click(object sender, EventArgs e)
+        private void btn_startquery_Click(object sender, EventArgs e)
         {
 
             Debug.WriteLine("Enabling threads");
@@ -326,25 +306,19 @@ namespace AECSentinel
             }
 
 
-            if (bw_sqlwriter.IsBusy != true)
-            {
-                bw_sqlwriter.RunWorkerAsync();
-            }
-
-            //SQL_ERROR = false; 
-            READ_ERROR = false;
+            LINK_ERROR = false;
 
             if (bw_btnupdater.IsBusy != true)
             {
                 bw_btnupdater.RunWorkerAsync();
             }
 
-            btn_pingstart.Enabled = false;
-            btn_pingstop.Enabled = true;
+            btn_startquery.Enabled = false;
+            btn_stopquery.Enabled = true;
 
         }
 
-        private void btn_pingstop_Click(object sender, EventArgs e)
+        private void btn_stopquery_Click(object sender, EventArgs e)
         {
 
             Debug.WriteLine("Disabling threads");
@@ -366,18 +340,13 @@ namespace AECSentinel
                 bw_resumer.CancelAsync();
             }
 
-            if (bw_sqlwriter.WorkerSupportsCancellation == true)
-            {
-                bw_sqlwriter.CancelAsync();
-            }
-
             if (bw_btnupdater.WorkerSupportsCancellation == true)
             {
                 bw_btnupdater.CancelAsync();
             }
 
-            btn_pingstart.Enabled = true;
-            btn_pingstop.Enabled = false;
+            btn_startquery.Enabled = true;
+            btn_stopquery.Enabled = false;
 
             //toolStripStatusLabel1.Image = global::AECping.Properties.Resources.BLUEBTN;
             //toolStripStatusLabel2.Image = global::AECping.Properties.Resources.BLUEBTN;
@@ -422,95 +391,7 @@ namespace AECSentinel
 
         }
 
-        private void writesql_thread (object sender, DoWorkEventArgs e)
-        {
-            //string cmd_str;
-            BackgroundWorker worker = sender as BackgroundWorker;
-            //sqlwrite_exceptionraised=false;
-            
-            /*try
-            {
-
-                using (SqlConnection con = new SqlConnection(con_str))
-                {
-
-                    con.Open();
-
-                    //Delete the rows in the sql table
-                    cmd_str = "DELETE FROM PING_PANEL_LIST";
-                    SqlCommand cmd = new SqlCommand(cmd_str, con);
-                    cmd.ExecuteNonQuery();
-
-                    //Initialize
-                    for (int i = 0; i < numPanels; i++)
-                    {
-                        cmd.CommandText =
-                            "INSERT INTO PING_PANEL_LIST " +
-                            "(ID, NOME, IP_ADDR)" +
-                            " Values ('" +
-                            i + "','" +
-                            dataGridView1.Rows[i].Cells[0].Value.ToString() + "','" +
-                            dataGridView1.Rows[i].Cells[1].Value.ToString() + "')";
-
-                        cmd.ExecuteNonQuery();
-                    }
-
-                    con.Close();
-
-                }
-
-                while (true)
-                {
-
-                    if ((worker.CancellationPending == true))
-                    {
-                        e.Cancel = true;
-                        break;
-                    }
-                    else
-                    {
-
-                        using (SqlConnection con = new SqlConnection(con_str))
-                        {
-
-                            con.Open();
-
-                            SqlCommand cmd = new SqlCommand(cmd_str, con);
-
-                            //populate the table
-                            for (int i = 0; i < numPanels; i++)
-                            {
-                                bool status_bool = false;
-                                if ( dataGridView1.Rows[i].Cells[3].Value.ToString().Substring(0,7).Equals("Success"))
-                                    status_bool = true;
-
-                                cmd.CommandText =
-                                    "UPDATE PING_PANEL_LIST " +
-                                    "SET " +
-                                    "RESPONSE='" +
-                                    dataGridView1.Rows[i].Cells[2].Value.ToString() + "'," +
-                                    "STATUS='" +
-                                    dataGridView1.Rows[i].Cells[3].Value.ToString() + "'," +
-                                    "STATUS_BOOL='" +
-                                    status_bool + "'" +
-                                    " WHERE ID='" + i + "';";
-
-                                cmd.ExecuteNonQuery();
-                            }
-                            con.Close();
-                        }
-                    }
-
-                    Thread.Sleep(sqlwrite_period);
-                }
-            }
-            catch
-            {
-                sqlwrite_exceptionraised = true;
-                SQL_ERROR = true;
-            }*/
-        }
-
+        
         private void updatebtn_thread(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
@@ -528,24 +409,8 @@ namespace AECSentinel
                     }
                     else
                     {
-                        /*if (SQL_ERROR)
-                        {
-                            if (!(toolStripStatusLabel1.AccessibleName.Equals("RED")))
-                            {
- //                               toolStripStatusLabel1.Image = global::AECping.Properties.Resources.REDBTN;
-                                toolStripStatusLabel1.AccessibleName = "RED";
-                            }
-                        }
-                        else
-                        {
-                            if (!(toolStripStatusLabel1.AccessibleName.Equals("GREEN")))
-                            {
-                                //toolStripStatusLabel1.Image = global::AECping.Properties.Resources.GREENBTN;
-                                toolStripStatusLabel1.AccessibleName = "GREEN";
-                            }
-                        }
-                        */
-                        if (READ_ERROR)
+                        
+                        if (LINK_ERROR)
                         {
                             if (!(toolStripStatusLabel2.AccessibleName.Equals("RED")))
                             {

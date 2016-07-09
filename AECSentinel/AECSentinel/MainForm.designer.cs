@@ -32,9 +32,9 @@
             this.Host = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.IP = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ResponseTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Status = new System.Windows.Forms.DataGridViewImageColumn();
-            this.btn_pingstop = new System.Windows.Forms.Button();
-            this.btn_pingstart = new System.Windows.Forms.Button();
+            this.Status = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.btn_stopquery = new System.Windows.Forms.Button();
+            this.btn_startquery = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
@@ -82,31 +82,30 @@
             this.Status.HeaderText = "Status";
             this.Status.Name = "Status";
             this.Status.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.Status.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
             // 
-            // btn_pingstop
+            // btn_stopquery
             // 
-            this.btn_pingstop.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btn_pingstop.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.btn_pingstop.Location = new System.Drawing.Point(455, 260);
-            this.btn_pingstop.Name = "btn_pingstop";
-            this.btn_pingstop.Size = new System.Drawing.Size(90, 23);
-            this.btn_pingstop.TabIndex = 1;
-            this.btn_pingstop.Text = "Stop Query";
-            this.btn_pingstop.UseVisualStyleBackColor = true;
-            this.btn_pingstop.Click += new System.EventHandler(this.btn_pingstop_Click);
+            this.btn_stopquery.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btn_stopquery.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.btn_stopquery.Location = new System.Drawing.Point(455, 260);
+            this.btn_stopquery.Name = "btn_stopquery";
+            this.btn_stopquery.Size = new System.Drawing.Size(90, 23);
+            this.btn_stopquery.TabIndex = 1;
+            this.btn_stopquery.Text = "Stop Query";
+            this.btn_stopquery.UseVisualStyleBackColor = true;
+            this.btn_stopquery.Click += new System.EventHandler(this.btn_stopquery_Click);
             // 
-            // btn_pingstart
+            // btn_startquery
             // 
-            this.btn_pingstart.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btn_pingstart.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.btn_pingstart.Location = new System.Drawing.Point(455, 231);
-            this.btn_pingstart.Name = "btn_pingstart";
-            this.btn_pingstart.Size = new System.Drawing.Size(90, 23);
-            this.btn_pingstart.TabIndex = 1;
-            this.btn_pingstart.Text = "Start Query";
-            this.btn_pingstart.UseVisualStyleBackColor = true;
-            this.btn_pingstart.Click += new System.EventHandler(this.btn_pingstart_Click);
+            this.btn_startquery.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btn_startquery.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.btn_startquery.Location = new System.Drawing.Point(455, 231);
+            this.btn_startquery.Name = "btn_startquery";
+            this.btn_startquery.Size = new System.Drawing.Size(90, 23);
+            this.btn_startquery.TabIndex = 1;
+            this.btn_startquery.Text = "Start Query";
+            this.btn_startquery.UseVisualStyleBackColor = true;
+            this.btn_startquery.Click += new System.EventHandler(this.btn_startquery_Click);
             // 
             // statusStrip1
             // 
@@ -163,8 +162,8 @@
             this.ClientSize = new System.Drawing.Size(557, 312);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.statusStrip1);
-            this.Controls.Add(this.btn_pingstart);
-            this.Controls.Add(this.btn_pingstop);
+            this.Controls.Add(this.btn_startquery);
+            this.Controls.Add(this.btn_stopquery);
             this.Controls.Add(this.dataGridView1);
             this.Name = "MainForm";
             this.Text = "AEC City SmartWay Sentinel";
@@ -181,17 +180,17 @@
         #endregion
 
         private System.Windows.Forms.DataGridView dataGridView1;
-        private System.Windows.Forms.Button btn_pingstop;
-        private System.Windows.Forms.Button btn_pingstart;
+        private System.Windows.Forms.Button btn_stopquery;
+        private System.Windows.Forms.Button btn_startquery;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel2;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel3;
         private System.Windows.Forms.DataGridViewTextBoxColumn Host;
         private System.Windows.Forms.DataGridViewTextBoxColumn IP;
         private System.Windows.Forms.DataGridViewTextBoxColumn ResponseTime;
-        private System.Windows.Forms.DataGridViewImageColumn Status;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel2;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel3;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Status;
     }
 }
 
