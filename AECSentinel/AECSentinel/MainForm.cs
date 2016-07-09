@@ -22,16 +22,8 @@ namespace AECSentinel
     {
         int query_period;
         int threadresume_period;
-        int read_timeout;
-        //int sqlwrite_period;
-        int failed_query_alarm;
+        int alarm_threshold;
         int numPanels;
-
-        string DataSource;
-        string InitialCatalog;
-        string UserID;
-        string Password;
-        string con_str;
 
         FileIniDataParser parser;
         string PanelININame;
@@ -61,16 +53,10 @@ namespace AECSentinel
                 parser = new FileIniDataParser();
                 data = parser.ReadFile(".\\Config\\AECSentinelConfig.ini");
                 numPanels = Convert.ToInt16(data["Config"]["Panels"]);
-                query_period = Convert.ToInt16(data["Config"]["Ping_period"]);
-                threadresume_period = Convert.ToInt16(data["Config"]["PingResume_period"]);
-                read_timeout = Convert.ToInt16(data["Config"]["Ping_timeout"]);
-                failed_query_alarm = Convert.ToInt16(data["Config"]["Failed_Ping_Alarm"]);
+                query_period = Convert.ToInt16(data["Webservice"]["Query_period"]);
+                threadresume_period = Convert.ToInt16(data["Config"]["Resume_period"]);
+                alarm_threshold = Convert.ToInt16(data["Config"]["Alarm_threshold"]);
 
-                DataSource = data["SQLConfig"]["DataSource"];
-                InitialCatalog = data["SQLConfig"]["InitialCatalog"]; ;
-                UserID = data["SQLConfig"]["UserID"]; ;
-                Password = data["SQLConfig"]["Password"]; ;
-                
                 bw_resumer.WorkerSupportsCancellation = true;
                 bw_resumer.DoWork += new DoWorkEventHandler(resume_thread);
 
@@ -110,21 +96,20 @@ namespace AECSentinel
                 PanelININame = "Panel" + i;
                 string s = data["Panels"][PanelININame];
                 string[] line = s.Split(',');
-                dataGridView1.Rows.Add(line[0], line[1]);
+                dataGridView1.Rows.Add(line[0]);
             }
 
             btn_startquery.Enabled = true;
             btn_stopquery.Enabled = false;
 
-            //toolStripStatusLabel1.Image = global::AECping.Properties.Resources.BLUEBTN;
-            //toolStripStatusLabel2.Image = global::AECping.Properties.Resources.BLUEBTN;
+            toolStripStatusLabel1.Image = global::AECSentinel.Properties.Resources.BLUEBTN;
+            toolStripStatusLabel2.Image = global::AECSentinel.Properties.Resources.BLUEBTN;
             toolStripStatusLabel1.AccessibleName="";
             toolStripStatusLabel2.AccessibleName = "";
 
-            toolStripStatusLabel3.Text = "Timeout=" + read_timeout + "ms, Period=" + query_period + "ms";
+            toolStripStatusLabel3.Text = "Query Period=" + query_period + "ms, Alarm Threshold=" + alarm_threshold;
 
         }
-
 
         private void resume_thread(object sender, DoWorkEventArgs e)
         {
@@ -286,7 +271,7 @@ namespace AECSentinel
 
             Debug.WriteLine("Enabling threads");
          
-
+            //start threads in the bw list
             int i = 0;
             foreach (BackgroundWorker s in bw_list)
             {
@@ -300,6 +285,7 @@ namespace AECSentinel
             }
 
 
+            //start resumer thread
             if (bw_resumer.IsBusy != true)
             {
                 bw_resumer.RunWorkerAsync();
@@ -308,11 +294,13 @@ namespace AECSentinel
 
             LINK_ERROR = false;
 
+            //start btupdater thread
             if (bw_btnupdater.IsBusy != true)
             {
                 bw_btnupdater.RunWorkerAsync();
             }
 
+            //update form
             btn_startquery.Enabled = false;
             btn_stopquery.Enabled = true;
 
@@ -323,7 +311,7 @@ namespace AECSentinel
 
             Debug.WriteLine("Disabling threads");
 
-
+            //stop threads in bw list
             foreach (BackgroundWorker s in bw_list)
             {
 
@@ -335,16 +323,19 @@ namespace AECSentinel
             }
 
 
+            //stop resumer thread
             if (bw_resumer.WorkerSupportsCancellation == true)
             {
                 bw_resumer.CancelAsync();
             }
 
+            //stop btnupdater thread
             if (bw_btnupdater.WorkerSupportsCancellation == true)
             {
                 bw_btnupdater.CancelAsync();
             }
 
+            //update form
             btn_startquery.Enabled = true;
             btn_stopquery.Enabled = false;
 
@@ -353,7 +344,6 @@ namespace AECSentinel
             toolStripStatusLabel1.AccessibleName = "";
             toolStripStatusLabel2.AccessibleName = "";
         }
-
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
@@ -391,7 +381,9 @@ namespace AECSentinel
 
         }
 
-        
+
+        /// <summary>updatebtn_thread updates the button images in the form.
+        /// </summary>
         private void updatebtn_thread(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
