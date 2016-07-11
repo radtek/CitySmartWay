@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // Le informazioni generali relative a un assembly sono controllate dal seguente 
 // set di attributi. Modificare i valori di questi attributi per modificare le informazioni
 // associate a un assembly.
-[assembly: AssemblyTitle("AECSentinel")]
+[assembly: AssemblyTitle("AEC Panel Sentinel")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Hewlett-Packard Company")]
-[assembly: AssemblyProduct("AECSentinel")]
-[assembly: AssemblyCopyright("Copyright © Hewlett-Packard Company 2016")]
+[assembly: AssemblyCompany("AEC Illuminazione Srl")]
+[assembly: AssemblyProduct("AEC Panel Sentinel")]
+[assembly: AssemblyCopyright("Copyright © AEC Illuminazione Srl 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
