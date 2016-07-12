@@ -82,7 +82,7 @@ namespace AECSentinel
                     bw.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
                     bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
 
-                    bw_list.Add(bw);
+                     bw_list.Add(bw);
 
                     Linkexceptionraised_list.Add(false);
                     Linkexceptionfailures_list.Add(0);
