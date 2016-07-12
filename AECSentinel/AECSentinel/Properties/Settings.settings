@@ -3,13 +3,22 @@
   <Profiles />
   <Settings>
     <Setting Name="ws_URL" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">http://citysmartway.aecilluminazione.it/hyper/ws</Value>
     </Setting>
     <Setting Name="ws_USERID" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">aec</Value>
     </Setting>
     <Setting Name="ws_PASSWORD" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">123456</Value>
+    </Setting>
+    <Setting Name="link_URL" Type="System.String" Scope="User">
+      <Value Profile="(Default)">localhost:55523/api</Value>
+    </Setting>
+    <Setting Name="link_USERID" Type="System.String" Scope="User">
+      <Value Profile="(Default)">pippo</Value>
+    </Setting>
+    <Setting Name="link_PASSWORD" Type="System.String" Scope="User">
+      <Value Profile="(Default)">pluto</Value>
     </Setting>
   </Settings>
 </SettingsFile>

@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
-using System.Data.SqlClient;
 
 using IniParser;
 using IniParser.Model;
@@ -19,32 +14,40 @@ using csw_lib;
 
 namespace AECSentinel
 {
-    
+
     public partial class MainForm : Form
     {
         int query_period;
         int threadresume_period;
         int alarm_threshold;
         int numPanels;
+        int token_update;
 
         FileIniDataParser parser;
         string PanelININame;
         IniData data ;
 
         BackgroundWorker bw_resumer = new BackgroundWorker();
+        BackgroundWorker bw_tokenupdater = new BackgroundWorker();
         BackgroundWorker bw_btnupdater = new BackgroundWorker();
 
         List<BackgroundWorker> bw_list = new List<BackgroundWorker>();
 
         List<bool> Linkexceptionraised_list = new List<bool>();
         List<int> Linkexceptionfailures_list = new List<int>();
-        List<int> failedquery_list = new List<int>();
+        List<int> panelalarmcount_list = new List<int>();
+        List<bool> panelalarm_list = new List<bool>();
 
+        csw_connector csw_connector = new csw_connector();
+        string token="";
+       
        
         bool LINK_ERROR = false;
         bool ALARM = false;
 
         delegate void UpdatelabelCallback(bool allarme);
+
+       
 
         public MainForm()
         {
@@ -58,13 +61,16 @@ namespace AECSentinel
                 query_period = Convert.ToInt16(data["Webservice"]["Query_period"]);
                 threadresume_period = Convert.ToInt16(data["Config"]["Resume_period"]);
                 alarm_threshold = Convert.ToInt16(data["Config"]["Alarm_threshold"]);
+                token_update = Convert.ToInt16(data["Webservice"]["Token_update"]);
 
                 bw_resumer.WorkerSupportsCancellation = true;
                 bw_resumer.DoWork += new DoWorkEventHandler(resume_thread);
 
                 bw_btnupdater.WorkerSupportsCancellation = true;
-                bw_btnupdater.DoWork += new DoWorkEventHandler(updatebtn_thread);
+                bw_btnupdater.DoWork += new DoWorkEventHandler(updateled_thread);
 
+                bw_tokenupdater.WorkerSupportsCancellation = true;
+                bw_tokenupdater.DoWork += new DoWorkEventHandler(updatetoken_thread);
 
                 for (int i = 0; i < numPanels; i++)
                 {
@@ -80,7 +86,12 @@ namespace AECSentinel
 
                     Linkexceptionraised_list.Add(false);
                     Linkexceptionfailures_list.Add(0);
+                    panelalarmcount_list.Add(0);
+                    panelalarm_list.Add(false);
                 }
+
+
+
             }
             catch (IniParser.Exceptions.ParsingException )
             {
@@ -99,8 +110,10 @@ namespace AECSentinel
                 string s = data["Panels"][PanelININame];
                 string[] line = s.Split(',');
                 dataGridView1.Rows.Add(line[0]);
-            }
+                dataGridView1.Rows[dataGridView1.RowCount - 2].Cells[1].Value = line[1];
 
+            }
+            
             btn_startquery.Enabled = true;
             btn_stopquery.Enabled = false;
 
@@ -160,7 +173,9 @@ namespace AECSentinel
         private void queryproc_thread(object sender, DoWorkEventArgs e)
         {
             int num_panel = (int)e.Argument;
-            //int num_try = 0;
+            int panelID;
+            
+            int num_try = 0;
 
             try
             {
@@ -169,21 +184,13 @@ namespace AECSentinel
                 Linkexceptionraised_list[num_panel] = false;
 
                 Debug.WriteLine("bw"+ num_panel+"_ID:"+Thread.CurrentThread.ManagedThreadId);
+
+                // Initialization 
+
+                List<SwitchboardStatus> swbStatus;
+                panelID =Convert.ToInt16(dataGridView1.Rows[num_panel].Cells[1].Value);
                 
-                /*Ping Ping_Sender = new Ping();
-                PingReply Ping_Reply;
-                PingOptions Ping_Options = new PingOptions();
-
-                string IPaddress = dataGridView1.Rows[num_panel].Cells[1].Value.ToString();
-                int timeout = ping_timeout;
-                string data = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-                byte[] ping_buffer = Encoding.ASCII.GetBytes(data);
-
-         
-                Ping_Options.Ttl = 128;
-                Ping_Options.DontFragment = true;*/
-
-                dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.Silver;
+                dataGridView1.Rows[num_panel].Cells[2].Style.BackColor = Color.Silver;
 
                 
 
@@ -200,39 +207,52 @@ namespace AECSentinel
                     else
                     {
 
-                        /*Ping_Reply = Ping_Sender.Send(IPaddress, timeout, ping_buffer, Ping_Options);
+            
 
-                        if (Ping_Reply.Status != IPStatus.Success)
+                        //// process
+                        if (token != "")
+
                         {
-                            num_try = 0;
-                            failedping_list[num_panel]++;
-                            pingexceptionfailures_list[num_panel] = 0;
-                            dataGridView1.Rows[num_panel].Cells[2].Value = "";
-                            dataGridView1.Rows[num_panel].Cells[3].Value = Ping_Reply.Status + "(" + failedping_list[num_panel] + ")";
+                            swbStatus = csw_connector.csw_switchboardStatus(token, panelID);
+
+                            if (swbStatus[0].swb_status > 0)
+                            {
+                                num_try = 0;
+                                panelalarmcount_list[num_panel]++;
+                                Linkexceptionfailures_list[num_panel] = 0;
+                                
+                                dataGridView1.Rows[num_panel].Cells[2].Value = "ALARM (" + panelalarmcount_list[num_panel] + ")";
+                            
+                                
+                            }
+                            else
+                            {
+                                num_try++;
+                                panelalarmcount_list[num_panel] = 0;
+                                Linkexceptionfailures_list[num_panel] = 0;
+                                dataGridView1.Rows[num_panel].Cells[2].Value = "OK (" + num_try + ")";
+                                
+                            }
+
+                            if (panelalarmcount_list[num_panel] == 0)
+                            {
+                                dataGridView1.Rows[num_panel].Cells[2].Style.BackColor = Color.LightGreen;
+                                panelalarm_list[num_panel] = false;
+                            }
+                            else if (panelalarmcount_list[num_panel] < alarm_threshold)
+                            {
+                                dataGridView1.Rows[num_panel].Cells[2].Style.BackColor = Color.Yellow;
+                            }
+                            else
+                            {
+                                dataGridView1.Rows[num_panel].Cells[2].Style.BackColor = Color.Red;
+                                panelalarm_list[num_panel] = true;
+                            }
+
+
 
                         }
-                        else
-                        {
-                            num_try++;
-                            failedping_list[num_panel] = 0;
-                            pingexceptionfailures_list[num_panel] = 0;
-                            dataGridView1.Rows[num_panel].Cells[2].Value = Ping_Reply.RoundtripTime + "ms";
-                            dataGridView1.Rows[num_panel].Cells[3].Value = Ping_Reply.Status + "(" + num_try + ")";
 
-                        }
-
-                        //Debug.WriteLine("Host:{3}, Status:{0}, RTT:{1}, TTL:{2}", Ping_Reply.Status, Ping_Reply.RoundtripTime, Ping_Reply.Options.Ttl, (int)e.Argument);
-
-                        if (failedping_list[num_panel] == 0)
-                            dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.LightGreen;
-                        else if (failedping_list[num_panel] < failed_ping_alarm)
-                            dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.Yellow;
-                        else
-                        {
-                            dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.Red;
-                            ALARM = true;
-                        }
-                        */
                         Thread.Sleep(query_period);
 
                     };
@@ -254,16 +274,125 @@ namespace AECSentinel
                 Debug.Write("bw"+ num_panel + ": NullReference Exception");
             }
 
-            catch (PingException)
+            catch (PingException) //rimpiazzare con link exception
             {
                 Linkexceptionraised_list[num_panel] = true;
                 Linkexceptionfailures_list[num_panel]++;
                 //num_try = 0;
 
                 Debug.Write("bw" + num_panel + ":Link Exception");
-                dataGridView1.Rows[num_panel].Cells[3].Style.BackColor = Color.Orange;
-                dataGridView1.Rows[num_panel].Cells[3].Value = "LINK ERR("+Linkexceptionfailures_list[num_panel]+")";
+                dataGridView1.Rows[num_panel].Cells[2].Style.BackColor = Color.Orange;
+                dataGridView1.Rows[num_panel].Cells[2].Value = "LINK ERR("+Linkexceptionfailures_list[num_panel]+")";
                 LINK_ERROR = true;
+            }
+
+        }
+
+        /// <summary>
+        /// Update the token string
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void updatetoken_thread(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+
+            try
+            {
+
+                while (true)
+                {
+
+                    if ((worker.CancellationPending == true))
+                    {
+                        e.Cancel = true;
+                        break;
+                    }
+                    else
+                    {
+
+                        //Aggiorna il token
+                        token = csw_connector.csw_login(Properties.Settings.Default.ws_USERID, Properties.Settings.Default.ws_PASSWORD, Properties.Settings.Default.ws_URL);
+                       
+
+                    }
+
+                    Thread.Sleep(token_update*1000);
+                }
+            }
+            catch
+            {
+                throw;
+            }
+
+        }
+        
+        /// <summary>Updates the led images in the form.
+        /// </summary>
+        private void updateled_thread(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+
+            try
+            {
+
+                while (true)
+                {
+
+                    if ((worker.CancellationPending == true))
+                    {
+                        e.Cancel = true;
+                        break;
+                    }
+                    else
+                    {
+                        
+                        if (LINK_ERROR)
+                        {
+                            if (!(toolStripStatusLabel2.AccessibleName.Equals("RED")))
+                            {
+ //                               toolStripStatusLabel2.Image = global::AECping.Properties.Resources.REDBTN;
+                                toolStripStatusLabel2.AccessibleName = "RED";
+                            }
+                        }
+                        else
+                        {
+                            if (!(toolStripStatusLabel2.AccessibleName.Equals("GREEN")))
+                            {
+ //                               toolStripStatusLabel2.Image = global::AECping.Properties.Resources.GREENBTN;
+                                toolStripStatusLabel2.AccessibleName = "GREEN";
+                            }
+                        }
+
+                        this.updatelabel_fromthread(ALARM);
+                                    
+
+                    }
+
+                    Thread.Sleep(1000);
+                }
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        /// <summary>Updates the label visibility ALARM images in the form. Invoked by updateled_thread
+        /// </summary>
+        private void updatelabel_fromthread(bool allarme)
+        {
+            if (this.label1.InvokeRequired)
+            {
+                UpdatelabelCallback d = new UpdatelabelCallback(updatelabel_fromthread);
+                this.Invoke(d, new object[] {allarme });
+            }
+            else
+            {
+                if (allarme)
+                    label1.Visible = true;
+                else
+                    label1.Visible = false;
             }
 
         }
@@ -272,7 +401,13 @@ namespace AECSentinel
         {
 
             Debug.WriteLine("Enabling threads");
-         
+
+            //start token updater thread
+            if (bw_tokenupdater.IsBusy != true)
+            {
+                bw_tokenupdater.RunWorkerAsync();
+            }
+            
             //start threads in the bw list
             int i = 0;
             foreach (BackgroundWorker s in bw_list)
@@ -336,6 +471,12 @@ namespace AECSentinel
             {
                 bw_btnupdater.CancelAsync();
             }
+            
+            //stop token updater thread
+            if (bw_tokenupdater.WorkerSupportsCancellation == true)
+            {
+                bw_tokenupdater.CancelAsync();
+            }
 
             //update form
             btn_startquery.Enabled = true;
@@ -350,7 +491,7 @@ namespace AECSentinel
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             Console.WriteLine("Form Closed");
-            
+
         }
 
         private void bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -378,78 +519,7 @@ namespace AECSentinel
             {
                 //this.tbProgress.Text = "Done!";
                 Debug.WriteLine("Thread Done!");
-               
-            }
 
-        }
-
-
-        /// <summary>Updates the button images in the form.
-        /// </summary>
-        private void updatebtn_thread(object sender, DoWorkEventArgs e)
-        {
-            BackgroundWorker worker = sender as BackgroundWorker;
-
-            try
-            {
-
-                while (true)
-                {
-
-                    if ((worker.CancellationPending == true))
-                    {
-                        e.Cancel = true;
-                        break;
-                    }
-                    else
-                    {
-                        
-                        if (LINK_ERROR)
-                        {
-                            if (!(toolStripStatusLabel2.AccessibleName.Equals("RED")))
-                            {
- //                               toolStripStatusLabel2.Image = global::AECping.Properties.Resources.REDBTN;
-                                toolStripStatusLabel2.AccessibleName = "RED";
-                            }
-                        }
-                        else
-                        {
-                            if (!(toolStripStatusLabel2.AccessibleName.Equals("GREEN")))
-                            {
- //                               toolStripStatusLabel2.Image = global::AECping.Properties.Resources.GREENBTN;
-                                toolStripStatusLabel2.AccessibleName = "GREEN";
-                            }
-                        }
-
-                        this.updatelabel_fromthread(ALARM);
-                                    
-
-                    }
-
-                    Thread.Sleep(1000);
-                }
-            }
-            catch
-            {
-                throw;
-            }
-        }
-
-        /// <summary>Updates the label visibility ALARM images in the form. Invoked by updatebtn_thread
-        /// </summary>
-        private void updatelabel_fromthread(bool allarme)
-        {
-            if (this.label1.InvokeRequired)
-            {
-                UpdatelabelCallback d = new UpdatelabelCallback(updatelabel_fromthread);
-                this.Invoke(d, new object[] {allarme });
-            }
-            else
-            {
-                if (allarme)
-                    label1.Visible = true;
-                else
-                    label1.Visible = false;
             }
 
         }

@@ -25,7 +25,7 @@ namespace AECSentinel.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://citysmartway.aecilluminazione.it/hyper/ws")]
         public string ws_URL {
             get {
                 return ((string)(this["ws_URL"]));
@@ -37,7 +37,7 @@ namespace AECSentinel.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        [global::System.Configuration.DefaultSettingValueAttribute("aec")]
         public string ws_USERID {
             get {
                 return ((string)(this["ws_USERID"]));
@@ -49,13 +49,49 @@ namespace AECSentinel.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        [global::System.Configuration.DefaultSettingValueAttribute("123456")]
         public string ws_PASSWORD {
             get {
                 return ((string)(this["ws_PASSWORD"]));
             }
             set {
                 this["ws_PASSWORD"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("localhost:55523/api")]
+        public string link_URL {
+            get {
+                return ((string)(this["link_URL"]));
+            }
+            set {
+                this["link_URL"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("pippo")]
+        public string link_USERID {
+            get {
+                return ((string)(this["link_USERID"]));
+            }
+            set {
+                this["link_USERID"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("pluto")]
+        public string link_PASSWORD {
+            get {
+                return ((string)(this["link_PASSWORD"]));
+            }
+            set {
+                this["link_PASSWORD"] = value;
             }
         }
     }
