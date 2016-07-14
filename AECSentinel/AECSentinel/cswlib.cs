@@ -263,27 +263,33 @@ namespace csw_lib
                 IRestResponse response = client.Execute(request);
 
                 if ((response.Content == "") || (response.Content == "[]"))
-                    swbStatuslist = null;
-                else
-                    swbStatuslist = JsonConvert.DeserializeObject<List<SwitchboardStatus>>(response.Content);
-
-                foreach (SwitchboardStatus c in swbStatuslist)
                 {
-                    Debug.WriteLine("swb_id:" + switchboard_id);
-                    Debug.WriteLine("swb_status:" + c.swb_status);
+                    swbStatuslist = null;
                 }
-
+                else
+                {
+                    swbStatuslist = JsonConvert.DeserializeObject<List<SwitchboardStatus>>(response.Content);
+                    foreach (SwitchboardStatus c in swbStatuslist)
+                    {
+                        Debug.WriteLine("swb_id:" + switchboard_id);
+                        Debug.WriteLine("swb_status:" + c.swb_status);
+                    }
+                }
+           
                 return swbStatuslist;
             }
             catch (Exception ex)
             {
 
                 //MessageBox.Show(ex.Message.ToString());
-                Debug.WriteLine("swbstatus-"+ex.Message.ToString());
-                throw;
-                //return null;
                 
+                Debug.WriteLine("swbstatus-" + ex.Message.ToString());
+
+                return null;
+
             }
+
+            
         }
         
         /// <summary>

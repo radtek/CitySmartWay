@@ -20,5 +20,23 @@
     <Setting Name="link_PASSWORD" Type="System.String" Scope="User">
       <Value Profile="(Default)">pluto</Value>
     </Setting>
+    <Setting Name="SMTP_HOST" Type="System.String" Scope="User">
+      <Value Profile="(Default)">smtp.gmail.com</Value>
+    </Setting>
+    <Setting Name="SMTP_PORT" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">587</Value>
+    </Setting>
+    <Setting Name="SMTP_USER" Type="System.String" Scope="User">
+      <Value Profile="(Default)">raffaele.benedetti@gmail.com</Value>
+    </Setting>
+    <Setting Name="SMTP_PASSWORD" Type="System.String" Scope="User">
+      <Value Profile="(Default)">@ri@nn@2006</Value>
+    </Setting>
+    <Setting Name="SMTP_SSL" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="SMTP_FROM" Type="System.String" Scope="User">
+      <Value Profile="(Default)">raffaele.benedetti@gmail.com</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

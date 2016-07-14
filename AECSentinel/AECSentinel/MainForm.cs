@@ -6,6 +6,8 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
+using System.Net;
+using System.Net.Mail;
 
 using IniParser;
 using IniParser.Model;
@@ -25,6 +27,7 @@ namespace AECSentinel
 
         FileIniDataParser parser;
         string PanelININame;
+        string INIConfigFile;
         IniData data ;
 
         BackgroundWorker bw_resumer = new BackgroundWorker();
@@ -33,17 +36,28 @@ namespace AECSentinel
 
         List<BackgroundWorker> bw_list = new List<BackgroundWorker>();
 
-        List<bool> Linkexceptionraised_list = new List<bool>();
-        List<int> Linkexceptionfailures_list = new List<int>();
-        List<int> panelalarmcount_list = new List<int>();
-        List<bool> panelalarm_list = new List<bool>();
+        List<bool> Link_exceptionraised_list = new List<bool>(); //se c'è un errore link di rete
+        List<int> Link_exceptionfailures_list = new List<int>(); //num. errori link di rete
+        List<bool> panel_nullresponsealarm_list = new List<bool>(); //se la risposta del pannello è null
+        List<int> panel_alarmcount_list = new List<int>();//num risposte "pannello in allarme"
+        List<bool> panel_alarm_list = new List<bool>();//se il pannello è in allarme
 
         csw_connector csw_connector = new csw_connector();
         string token="";
-       
-       
-        bool LINK_ERROR = false;
-        bool ALARM = false;
+
+
+        //variabili globali di segnalazione
+        bool LINK_ERROR = false; //errore di rete o id pannello
+        bool ALARM = false; //almeno un pannello in allarme
+        
+
+        //variabili email
+        string emailto;
+        string emailsubject;
+        int email_period;
+        int email_retry;
+        int num_sent_alarms = 0; //num allarmi inviati
+
 
         delegate void UpdatelabelCallback(bool allarme);
 
@@ -53,16 +67,11 @@ namespace AECSentinel
         {
             InitializeComponent();
 
+            LoadINIConfig();
+
             try
             {
-                parser = new FileIniDataParser();
-                data = parser.ReadFile(".\\Config\\AECSentinelConfig.ini");
-                numPanels = Convert.ToInt16(data["Config"]["Panels"]);
-                query_period = Convert.ToInt16(data["Webservice"]["Query_period"]);
-                threadresume_period = Convert.ToInt16(data["Config"]["Resume_period"]);
-                alarm_threshold = Convert.ToInt16(data["Config"]["Alarm_threshold"]);
-                token_update = Convert.ToInt16(data["Webservice"]["Token_update"]);
-
+                
                 bw_resumer.WorkerSupportsCancellation = true;
                 bw_resumer.DoWork += new DoWorkEventHandler(resume_thread);
 
@@ -82,12 +91,13 @@ namespace AECSentinel
                     bw.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
                     bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
 
-                     bw_list.Add(bw);
+                    bw_list.Add(bw);
 
-                    Linkexceptionraised_list.Add(false);
-                    Linkexceptionfailures_list.Add(0);
-                    panelalarmcount_list.Add(0);
-                    panelalarm_list.Add(false);
+                    Link_exceptionraised_list.Add(false);
+                    Link_exceptionfailures_list.Add(0);
+                    panel_alarmcount_list.Add(0);
+                    panel_alarm_list.Add(false);
+                    panel_nullresponsealarm_list.Add(false);
                 }
 
 
@@ -100,10 +110,40 @@ namespace AECSentinel
            
         }
 
+        private void LoadINIConfig()
+        {
+            try
+            {
+                parser = new FileIniDataParser();
+                INIConfigFile = ".\\Config\\AECSentinelConfig.ini";
+                data = parser.ReadFile(INIConfigFile);
+                numPanels = Convert.ToInt16(data["Config"]["Panels"]);
+                query_period = Convert.ToInt16(data["Webservice"]["Query_period"]);
+                threadresume_period = Convert.ToInt16(data["Config"]["Resume_period"]);
+                alarm_threshold = Convert.ToInt16(data["Config"]["Alarm_threshold"]);
+                token_update = Convert.ToInt16(data["Webservice"]["Token_update"]);
+
+                emailto = data["Email"]["Email_to"];
+                emailsubject = data["Email"]["Email_subject"];
+                email_retry = Convert.ToInt16(data["Email"]["Email_retry"]);
+                email_period = Convert.ToInt16(data["Email"]["Email_period"]);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
 
+            PrepareDataGrid();
+            UpdateStatusLabel();
+
+        }
+
+        private void PrepareDataGrid()
+        {
             for (int i = 1; i <= numPanels; i++)
             {
                 PanelININame = "Panel" + i;
@@ -113,17 +153,20 @@ namespace AECSentinel
                 dataGridView1.Rows[dataGridView1.RowCount - 2].Cells[1].Value = line[1];
 
             }
-            
+
             btn_startquery.Enabled = true;
             btn_stopquery.Enabled = false;
 
             toolStripStatusLabel1.Image = global::AECSentinel.Properties.Resources.BLUEBTN;
             toolStripStatusLabel2.Image = global::AECSentinel.Properties.Resources.BLUEBTN;
-            toolStripStatusLabel1.AccessibleName="";
+            toolStripStatusLabel1.AccessibleName = "";
             toolStripStatusLabel2.AccessibleName = "";
 
-            toolStripStatusLabel3.Text = "Query Period=" + query_period + "ms, Alarm Threshold=" + alarm_threshold;
+        }
 
+        private void UpdateStatusLabel()
+        {
+            toolStripStatusLabel3.Text = "Query Period=" + query_period + "ms, Alarm Threshold=" + alarm_threshold;
         }
 
         private void resume_thread(object sender, DoWorkEventArgs e)
@@ -146,7 +189,7 @@ namespace AECSentinel
                 {
                     int num_link_err = 0;
                     int i = 0;
-                    foreach (bool s in new System.Collections.ArrayList(Linkexceptionraised_list))
+                    foreach (bool s in new System.Collections.ArrayList(Link_exceptionraised_list))
                     {
 
                         if (s)
@@ -174,14 +217,14 @@ namespace AECSentinel
         {
             int num_panel = (int)e.Argument;
             int panelID;
-            
+            bool panel_error;
             int num_try = 0;
 
             try
             {
                 BackgroundWorker worker = sender as BackgroundWorker;
-                Linkexceptionfailures_list[num_panel] = 0;
-                Linkexceptionraised_list[num_panel] = false;
+                Link_exceptionfailures_list[num_panel] = 0;
+                Link_exceptionraised_list[num_panel] = false;
 
                 Debug.WriteLine("bw"+ num_panel+"_ID:"+Thread.CurrentThread.ManagedThreadId);
 
@@ -213,43 +256,72 @@ namespace AECSentinel
                         if (token != "")
 
                         {
+
                             swbStatus = csw_connector.csw_switchboardStatus(token, panelID);
 
-                            if (swbStatus[0].swb_status > 0)
+                            panel_error = false;
+
+                            if (swbStatus == null)
                             {
-                                num_try = 0;
-                                panelalarmcount_list[num_panel]++;
-                                Linkexceptionfailures_list[num_panel] = 0;
-                                
-                                dataGridView1.Rows[num_panel].Cells[2].Value = "ALARM (" + panelalarmcount_list[num_panel] + ")";
-                            
-                                
+                                panel_nullresponsealarm_list[num_panel]=true;
+                                panel_error = true;
+
                             }
                             else
                             {
+                                panel_nullresponsealarm_list[num_panel]=false;
+
+                                if (swbStatus[0].swb_status > 0)
+                                    panel_error = true;
+                                
+                            }
+
+                            if (panel_error)
+                            {
+                                num_try = 0;
+                                panel_alarmcount_list[num_panel]++;
+                                Link_exceptionfailures_list[num_panel] = 0;
+                                
+                                if (panel_nullresponsealarm_list[num_panel])
+                                    dataGridView1.Rows[num_panel].Cells[2].Value = "NULL RESPONSE (" + panel_alarmcount_list[num_panel] + ")";
+                                else
+                                    dataGridView1.Rows[num_panel].Cells[2].Value = "ALARM (" + panel_alarmcount_list[num_panel] + ")";
+
+                            }
+
+                            else
+
+                            {
                                 num_try++;
-                                panelalarmcount_list[num_panel] = 0;
-                                Linkexceptionfailures_list[num_panel] = 0;
+                                panel_alarmcount_list[num_panel] = 0;
+                                Link_exceptionfailures_list[num_panel] = 0;
+                                
                                 dataGridView1.Rows[num_panel].Cells[2].Value = "OK (" + num_try + ")";
                                 
                             }
 
-                            if (panelalarmcount_list[num_panel] == 0)
+                            //aggiorna i colori delle caselle di stato
+                            if (panel_alarmcount_list[num_panel] == 0)
                             {
                                 dataGridView1.Rows[num_panel].Cells[2].Style.BackColor = Color.LightGreen;
-                                panelalarm_list[num_panel] = false;
+                                panel_alarm_list[num_panel] = false;
                             }
-                            else if (panelalarmcount_list[num_panel] < alarm_threshold)
+                            else if (panel_alarmcount_list[num_panel] < alarm_threshold)
                             {
                                 dataGridView1.Rows[num_panel].Cells[2].Style.BackColor = Color.Yellow;
                             }
                             else
                             {
                                 dataGridView1.Rows[num_panel].Cells[2].Style.BackColor = Color.Red;
-                                panelalarm_list[num_panel] = true;
+                                panel_alarm_list[num_panel] = true;
+
+                                if (num_sent_alarms < email_retry)
+                                {
+                                    send_email(num_panel);
+                                    num_sent_alarms++;
+                                }
                             }
-
-
+                            
 
                         }
 
@@ -276,13 +348,13 @@ namespace AECSentinel
 
             catch (PingException) //rimpiazzare con link exception
             {
-                Linkexceptionraised_list[num_panel] = true;
-                Linkexceptionfailures_list[num_panel]++;
+                Link_exceptionraised_list[num_panel] = true;
+                Link_exceptionfailures_list[num_panel]++;
                 //num_try = 0;
 
                 Debug.Write("bw" + num_panel + ":Link Exception");
                 dataGridView1.Rows[num_panel].Cells[2].Style.BackColor = Color.Orange;
-                dataGridView1.Rows[num_panel].Cells[2].Value = "LINK ERR("+Linkexceptionfailures_list[num_panel]+")";
+                dataGridView1.Rows[num_panel].Cells[2].Value = "LINK ERR("+Link_exceptionfailures_list[num_panel]+")";
                 LINK_ERROR = true;
             }
 
@@ -351,7 +423,7 @@ namespace AECSentinel
                         {
                             if (!(toolStripStatusLabel2.AccessibleName.Equals("RED")))
                             {
- //                               toolStripStatusLabel2.Image = global::AECping.Properties.Resources.REDBTN;
+                                toolStripStatusLabel2.Image = global::AECSentinel.Properties.Resources.REDBTN;
                                 toolStripStatusLabel2.AccessibleName = "RED";
                             }
                         }
@@ -359,13 +431,17 @@ namespace AECSentinel
                         {
                             if (!(toolStripStatusLabel2.AccessibleName.Equals("GREEN")))
                             {
- //                               toolStripStatusLabel2.Image = global::AECping.Properties.Resources.GREENBTN;
+                                toolStripStatusLabel2.Image = global::AECSentinel.Properties.Resources.GREENBTN;
                                 toolStripStatusLabel2.AccessibleName = "GREEN";
                             }
                         }
 
+                        foreach (bool s in panel_alarm_list)
+                        {
+                            ALARM = ALARM | s;
+                        }
+
                         this.updatelabel_fromthread(ALARM);
-                                    
 
                     }
 
@@ -524,5 +600,67 @@ namespace AECSentinel
 
         }
 
+        private void send_email(int panel_id)
+        {
+            string smtpAddress = Properties.Settings.Default.SMTP_HOST;
+            int portNumber = Properties.Settings.Default.SMTP_PORT;
+            bool enableSSL = Properties.Settings.Default.SMTP_SSL;
+            string user = Properties.Settings.Default.SMTP_USER;
+            string password = Properties.Settings.Default.SMTP_PASSWORD;
+
+            string e_From = Properties.Settings.Default.SMTP_FROM;
+            string e_To = emailto;
+            string e_subject = emailsubject;
+
+            string timestamp = DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss");
+
+            string e_body = "ALARM:" + dataGridView1.Rows[panel_id].Cells[1].Value + ";" + dataGridView1.Rows[panel_id].Cells[2].Value + ";" + timestamp;
+            try
+            {
+                using (MailMessage mail = new MailMessage())
+                {
+
+                    mail.From = new MailAddress(e_From);
+                    mail.To.Add(e_To);
+                    mail.Subject = e_subject;
+                    mail.Body = e_body;
+                    mail.IsBodyHtml = false;
+                    // Can set to false, if you are sending pure text.
+
+                    //mail.Attachments.Add(new Attachment("C:\\SomeFile.txt"));
+                    //mail.Attachments.Add(new Attachment("C:\\SomeZip.zip"));
+
+                    using (SmtpClient smtp = new SmtpClient(smtpAddress, portNumber))
+                    {
+                        smtp.Credentials = new NetworkCredential(user, password);
+                        smtp.EnableSsl = enableSSL;
+                        smtp.Send(mail);
+                        //MessageBox.Show("Messaggio inviato");
+                    }
+                }
+
+            }
+            catch (Exception e)
+
+            {
+                MessageBox.Show(e.Message);
+                throw;
+            }
+            
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Process.Start(INIConfigFile);
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            dataGridView1.Rows.Clear();
+
+            LoadINIConfig();
+            PrepareDataGrid();
+            UpdateStatusLabel();
+        }
     }
 }

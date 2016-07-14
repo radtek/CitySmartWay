@@ -94,5 +94,77 @@ namespace AECSentinel.Properties {
                 this["link_PASSWORD"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("smtp.gmail.com")]
+        public string SMTP_HOST {
+            get {
+                return ((string)(this["SMTP_HOST"]));
+            }
+            set {
+                this["SMTP_HOST"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("587")]
+        public int SMTP_PORT {
+            get {
+                return ((int)(this["SMTP_PORT"]));
+            }
+            set {
+                this["SMTP_PORT"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("raffaele.benedetti@gmail.com")]
+        public string SMTP_USER {
+            get {
+                return ((string)(this["SMTP_USER"]));
+            }
+            set {
+                this["SMTP_USER"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("@ri@nn@2006")]
+        public string SMTP_PASSWORD {
+            get {
+                return ((string)(this["SMTP_PASSWORD"]));
+            }
+            set {
+                this["SMTP_PASSWORD"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool SMTP_SSL {
+            get {
+                return ((bool)(this["SMTP_SSL"]));
+            }
+            set {
+                this["SMTP_SSL"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("raffaele.benedetti@gmail.com")]
+        public string SMTP_FROM {
+            get {
+                return ((string)(this["SMTP_FROM"]));
+            }
+            set {
+                this["SMTP_FROM"] = value;
+            }
+        }
     }
 }
