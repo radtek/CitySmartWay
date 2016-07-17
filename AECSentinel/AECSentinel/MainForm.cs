@@ -71,7 +71,6 @@ namespace AECSentinel
 
             try
             {
-                
                 bw_resumer.WorkerSupportsCancellation = true;
                 bw_resumer.DoWork += new DoWorkEventHandler(resume_thread);
 
@@ -80,6 +79,21 @@ namespace AECSentinel
 
                 bw_tokenupdater.WorkerSupportsCancellation = true;
                 bw_tokenupdater.DoWork += new DoWorkEventHandler(updatetoken_thread);
+
+            }
+            catch
+            {
+                throw;
+            }
+
+            InitializeThreads();
+           
+        }
+
+        private void InitializeThreads()
+        {
+            try
+            {
 
                 for (int i = 0; i < numPanels; i++)
                 {
@@ -98,16 +112,15 @@ namespace AECSentinel
                     panel_alarmcount_list.Add(0);
                     panel_alarm_list.Add(false);
                     panel_nullresponsealarm_list.Add(false);
+
                 }
 
-
-
             }
-            catch (IniParser.Exceptions.ParsingException )
+            catch (Exception ex)
             {
-                MessageBox.Show("Invalid INI File");
+                MessageBox.Show(ex.Message);
             }
-           
+
         }
 
         private void LoadINIConfig()
@@ -128,9 +141,9 @@ namespace AECSentinel
                 email_retry = Convert.ToInt16(data["Email"]["Email_retry"]);
                 email_period = Convert.ToInt16(data["Email"]["Email_period"]);
             }
-            catch (Exception e)
+            catch (IniParser.Exceptions.ParsingException)
             {
-                MessageBox.Show(e.Message);
+                MessageBox.Show("Invalid INI File");
             }
         }
 
@@ -138,6 +151,7 @@ namespace AECSentinel
         {
 
             PrepareDataGrid();
+
             UpdateStatusLabel();
 
         }
@@ -156,6 +170,8 @@ namespace AECSentinel
 
             btn_startquery.Enabled = true;
             btn_stopquery.Enabled = false;
+            //btn_reloadINI.Enabled = true;
+            btn_openINI.Enabled = true;
 
             toolStripStatusLabel1.Image = global::AECSentinel.Properties.Resources.BLUEBTN;
             toolStripStatusLabel2.Image = global::AECSentinel.Properties.Resources.BLUEBTN;
@@ -516,6 +532,7 @@ namespace AECSentinel
             //update form
             btn_startquery.Enabled = false;
             btn_stopquery.Enabled = true;
+            //btn_reloadINI.Enabled = false;
 
         }
 
@@ -557,6 +574,7 @@ namespace AECSentinel
             //update form
             btn_startquery.Enabled = true;
             btn_stopquery.Enabled = false;
+            //btn_reloadINI.Enabled = true;
 
             //toolStripStatusLabel1.Image = global::AECping.Properties.Resources.BLUEBTN;
             //toolStripStatusLabel2.Image = global::AECping.Properties.Resources.BLUEBTN;
@@ -643,8 +661,8 @@ namespace AECSentinel
             catch (Exception e)
 
             {
-                MessageBox.Show(e.Message);
-                throw;
+                MessageBox.Show(e.Message + " - " + e.InnerException.Message + " - " + e.InnerException.InnerException.Message);
+                //throw;
             }
             
         }
@@ -657,8 +675,23 @@ namespace AECSentinel
         private void button2_Click(object sender, EventArgs e)
         {
             dataGridView1.Rows.Clear();
+            foreach (BackgroundWorker bw in bw_list)
+            {
+                bw.Dispose();
+                
+            }
+            bw_list.Clear();
 
+            Link_exceptionraised_list.Clear();
+            Link_exceptionfailures_list.Clear();
+            panel_alarmcount_list.Clear();
+            panel_alarm_list.Clear();
+            panel_nullresponsealarm_list.Clear();
+
+
+            InitializeThreads();
             LoadINIConfig();
+
             PrepareDataGrid();
             UpdateStatusLabel();
         }

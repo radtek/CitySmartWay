@@ -41,8 +41,7 @@
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
             this.label1 = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
+            this.btn_openINI = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -175,29 +174,17 @@
             this.label1.TabIndex = 3;
             this.label1.Text = "ALARM";
             // 
-            // button1
+            // btn_openINI
             // 
-            this.button1.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.button1.Location = new System.Drawing.Point(455, 12);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(90, 23);
-            this.button1.TabIndex = 1;
-            this.button1.Text = "Open INI File";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // button2
-            // 
-            this.button2.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.button2.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.button2.Location = new System.Drawing.Point(455, 41);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(90, 23);
-            this.button2.TabIndex = 1;
-            this.button2.Text = "Reload INI File";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.btn_openINI.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btn_openINI.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.btn_openINI.Location = new System.Drawing.Point(455, 12);
+            this.btn_openINI.Name = "btn_openINI";
+            this.btn_openINI.Size = new System.Drawing.Size(90, 23);
+            this.btn_openINI.TabIndex = 1;
+            this.btn_openINI.Text = "Open INI File";
+            this.btn_openINI.UseVisualStyleBackColor = true;
+            this.btn_openINI.Click += new System.EventHandler(this.button1_Click);
             // 
             // MainForm
             // 
@@ -206,8 +193,7 @@
             this.ClientSize = new System.Drawing.Size(557, 312);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.statusStrip1);
-            this.Controls.Add(this.button2);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.btn_openINI);
             this.Controls.Add(this.btn_startquery);
             this.Controls.Add(this.btn_stopquery);
             this.Controls.Add(this.dataGridView1);
@@ -238,8 +224,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn IP;
         private System.Windows.Forms.DataGridViewTextBoxColumn ResponseTime;
         private System.Windows.Forms.DataGridViewTextBoxColumn Status;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button btn_openINI;
     }
 }
 
