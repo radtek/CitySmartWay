@@ -74,12 +74,12 @@ namespace AECping
 
                 DataSource = data["SQLConfig"]["DataSource"];
                 InitialCatalog = data["SQLConfig"]["InitialCatalog"]; ;
-                UserID = data["SQLConfig"]["UserID"]; ;
-                Password = data["SQLConfig"]["Password"]; ;
+                //UserID = data["SQLConfig"]["UserID"]; ;
+                //Password = data["SQLConfig"]["Password"]; ;
                 sqlwrite_period = Convert.ToInt16(data["SQLConfig"]["SqlWrite_period"]);
                 
 
-                con_str = "Data Source=" + DataSource + ";Initial Catalog=" + InitialCatalog + ";User ID=" + UserID + ";Password=" + Password + ";";
+                //con_str = "Data Source=" + DataSource + ";Initial Catalog=" + InitialCatalog + ";User ID=" + UserID + ";Password=" + Password + ";";
 
                 bw_resumer.WorkerSupportsCancellation = true;
                 bw_resumer.DoWork += new DoWorkEventHandler(resume_thread);
@@ -444,6 +444,7 @@ namespace AECping
             
             try
             {
+                con_str = Properties.Settings.Default.AEC_DBUTConnectionString;
 
                 using (SqlConnection con = new SqlConnection(con_str))
                 {
@@ -519,10 +520,12 @@ namespace AECping
                     Thread.Sleep(sqlwrite_period);
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 sqlwrite_exceptionraised = true;
                 SQL_ERROR = true;
+                MessageBox.Show(ex.Message + ".");
+                
             }
         }
 
